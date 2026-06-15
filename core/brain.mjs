@@ -240,6 +240,19 @@ export function applyImprovement(text, concern) {
   if (b.improvements.some((im) => im.text === t)) return getBrain(); // idempotent — repeat approves don't duplicate the node
   b.improvements.push({ text: t, concern: concern || null, at: new Date().toISOString() });
   b.improvements = b.improvements.slice(-12);
+  // APPROVE ALSO DRIVES THE LEARNED POLICY: a human-approved directive is strong supervision, so reinforce
+  // this concern's best strategy with high-confidence evidence (closes both loops from one click).
+  if (concern) {
+    const d = domain();
+    const strat = b.policy[concern] || Object.entries(d.truth[concern] || {}).sort((a, c) => c[1] - a[1])[0]?.[0];
+    if (strat) {
+      b.observed[concern] = b.observed[concern] || {};
+      const o = (b.observed[concern][strat] = b.observed[concern][strat] || { n: 0, wins: 0 });
+      o.n += 20;
+      o.wins += 19; // human-validated → near-certain reinforcement
+      b.policy[concern] = strat;
+    }
+  }
   write(b);
   return getBrain();
 }

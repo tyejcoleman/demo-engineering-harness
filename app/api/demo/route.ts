@@ -37,9 +37,22 @@ export async function GET(req: Request) {
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      await streamDemo((ev: unknown) => controller.enqueue(encoder.encode(sseEvent("ev", ev))), { live, situation, starter });
-      controller.enqueue(encoder.encode(sseEvent("done", { ok: true })));
-      controller.close();
+      await streamDemo(
+        (ev: unknown) => {
+          try {
+            controller.enqueue(encoder.encode(sseEvent("ev", ev)));
+          } catch {
+            /* client disconnected — enqueue on a closed stream */
+          }
+        },
+        { live, situation, starter, signal: req.signal }
+      );
+      try {
+        controller.enqueue(encoder.encode(sseEvent("done", { ok: true })));
+        controller.close();
+      } catch {
+        /* already closed */
+      }
     },
   });
   return new Response(stream, {

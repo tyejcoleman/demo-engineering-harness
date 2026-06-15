@@ -74,6 +74,7 @@ function genAccount() {
 
 export async function streamDemo(emit, opts = {}) {
   const t0 = Date.now(); // real handle time (how long the AI took end-to-end)
+  const aborted = () => !!opts.signal?.aborted; // client disconnected → stop spending on an abandoned call
   const rounds = opts.rounds ?? 3;
   const live = opts.live !== false;
   const spec = loadSpec();
@@ -151,6 +152,7 @@ export async function streamDemo(emit, opts = {}) {
   const transcript = () => convo.map((c) => `${c.who}: ${c.text}`).join("\n") || "(call just connected)";
 
   for (let r = 0; r < rounds; r++) {
+    if (aborted()) return; // abandoned/replaced run — terminate, no more LLM calls
     let cust = null;
     let sentiment = "negative";
     if (r === 0 && starter) {
@@ -214,6 +216,7 @@ export async function streamDemo(emit, opts = {}) {
     }
   }
 
+  if (aborted()) return;
   // SIMULATION vs a customer-twin
   emit({ kind: "thinking", who: "assist" });
   phase("Simulate");
