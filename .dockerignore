@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+private
+data
+.env*
+*.png
+.playwright-mcp
+npm-debug.log

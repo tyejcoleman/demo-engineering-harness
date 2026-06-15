@@ -1,0 +1,9 @@
+{
+  "_comment": "Register the Forge MCP server with Claude Code. Merge into ~/.claude/settings.json (or .mcp.json at the repo root). Run Claude Code from the repo root so the relative path resolves.",
+  "mcpServers": {
+    "forge": {
+      "command": "node",
+      "args": ["mcp/server.mjs"]
+    }
+  }
+}

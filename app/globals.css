@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background:
+    radial-gradient(1100px 560px at 82% -10%, rgba(109, 75, 255, 0.10), transparent 60%),
+    radial-gradient(900px 480px at -8% 4%, rgba(79, 125, 240, 0.10), transparent 55%),
+    #eef2f9;
+  color: #16213e;
+  min-height: 100vh;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-edge bg-panel;
+  }
+  .card-inset {
+    @apply rounded-xl border border-edge bg-panel2;
+  }
+  .btn {
+    @apply rounded-lg px-4 py-2 text-sm font-medium transition disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn text-white;
+    background: linear-gradient(180deg, #7c5cff, #5a37e6);
+    box-shadow: 0 8px 22px rgba(109, 75, 255, 0.26);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 10px 26px rgba(109, 75, 255, 0.34);
+  }
+  .btn-ghost {
+    @apply btn border border-edge bg-panel text-fg hover:bg-panel2;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-edge bg-panel2 px-2.5 py-0.5 text-[11px] text-muted;
+  }
+  .input {
+    @apply w-full rounded-lg border border-edge bg-panel px-3 py-2 text-sm text-fg outline-none transition focus:border-accent;
+  }
+  .label {
+    @apply text-[11px] uppercase tracking-wider text-muted;
+  }
+}
+
+/* 3d-force-graph wraps node/link tooltips in a dark default container (class .scene-tooltip; the 2D
+   lib uses .graph-tooltip). Our label HTML already provides its own light card, so make the wrapper
+   invisible — covers every context graph (demo + brain) since they share this component. */
+.float-tooltip-kap,
+.scene-tooltip,
+.graph-tooltip {
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  font: inherit !important;
+  color: inherit !important;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cfd8e8;
+  border-radius: 9px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes fadeup {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fadeup {
+  animation: fadeup 0.5s ease both;
+}
+
+/* AI attention nudge — a futuristic pulsing glow on the area the AI wants you to look at. */
+@keyframes nudgePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(109, 75, 255, 0.5), 0 0 18px 1px rgba(109, 75, 255, 0.3);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(109, 75, 255, 0), 0 0 26px 5px rgba(109, 75, 255, 0.22);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(109, 75, 255, 0), 0 0 18px 1px rgba(109, 75, 255, 0.3);
+  }
+}
+.nudge-glow {
+  animation: nudgePulse 1.6s ease-out infinite;
+  border-color: rgba(109, 75, 255, 0.7) !important;
+  position: relative;
+  z-index: 5;
+}
+@keyframes nudgeFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+.nudge-tag {
+  animation: nudgeFloat 2s ease-in-out infinite, fadeup 0.4s ease both;
+}

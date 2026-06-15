@@ -1,0 +1,11 @@
+# Auto-TLS reverse proxy in front of the app. Domain comes from the environment (.env → FORGE_DOMAIN).
+# PUBLIC by default — the app's hard daily cost cap + per-IP rate limiting make a public link safe.
+# To gate it instead, uncomment the basic_auth block and set FORGE_BASICAUTH="<user> <bcrypt-hash>"
+# in .env (generate with: docker run --rm caddy:2 caddy hash-password --plaintext '<password>').
+{$FORGE_DOMAIN} {
+	encode zstd gzip
+	# basic_auth {
+	# 	{$FORGE_BASICAUTH}
+	# }
+	reverse_proxy app:5178
+}

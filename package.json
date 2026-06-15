@@ -1,0 +1,32 @@
+{
+  "name": "forge-demo-harness",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 5178",
+    "build": "next build",
+    "start": "next start -p 5178",
+    "probe": "node scripts/probe-spine.mjs",
+    "verify": "node scripts/probe-all.mjs",
+    "visual": "node scripts/visual-gate.mjs",
+    "mcp": "node mcp/server.mjs"
+  },
+  "dependencies": {
+    "3d-force-graph": "^1.73.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "next": "14.2",
+    "playwright": "^1.47.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "three-spritetext": "^1.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.14.10",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "autoprefixer": "10.4.19",
+    "postcss": "8.4.39",
+    "tailwindcss": "3.4.6",
+    "typescript": "5.5.3"
+  }
+}

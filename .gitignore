@@ -1,0 +1,15 @@
+node_modules
+.next
+out
+.env*
+*.log
+.DS_Store
+.runs
+private/
+data/*.json
+.playwright-mcp/
+
+# deploy automation is owner-only — not published
+scripts/deploy.sh
+DEPLOY.md
+.github/

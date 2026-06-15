@@ -1,0 +1,21 @@
+# Production stack — APP ONLY. Designed to sit behind a shared reverse proxy (Caddy) that already
+# terminates TLS on :80/:443 on the host; the app joins that proxy's docker network so Caddy can
+# reverse_proxy it by name (forge-app:5178). No second proxy, no port conflicts. The app's daily cost
+# cap + rate limit make the public route safe. Set FORGE_PROXY_NETWORK in .env to the proxy's network.
+services:
+  app:
+    build: .
+    container_name: forge-app
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+    expose:
+      - "5178"
+    restart: unless-stopped
+    networks:
+      - edge
+
+networks:
+  edge:
+    external: true
+    name: ${FORGE_PROXY_NETWORK:-edge}

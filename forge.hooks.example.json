@@ -1,0 +1,11 @@
+{
+  "_comment": "Example Claude Code hook: run the full verify gate (all behavioral probes) when a session ends, so every change is checked. Merge into ~/.claude/settings.json.",
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [{ "type": "command", "command": "node scripts/probe-all.mjs" }]
+      }
+    ]
+  }
+}
