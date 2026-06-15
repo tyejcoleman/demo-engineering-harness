@@ -21,7 +21,7 @@ const storePath = () => process.env.FORGE_BRAIN || path.join(process.cwd(), "dat
 const DOMAINS = {
   telecom: {
     rare: "fraud",
-    truth: {
+    seed: {
       billing: { refund: 0.92, credit: 0.7, escalate: 0.45, callback: 0.4, plan_change: 0.3, discount: 0.48, monitor: 0.25 },
       outage: { credit: 0.86, monitor: 0.62, escalate: 0.7, callback: 0.5, refund: 0.55, discount: 0.5, plan_change: 0.3 },
       retention: { discount: 0.82, credit: 0.66, plan_change: 0.72, callback: 0.45, refund: 0.5, escalate: 0.4, monitor: 0.35 },
@@ -31,7 +31,7 @@ const DOMAINS = {
   },
   fintech: {
     rare: "fraud_alert",
-    truth: {
+    seed: {
       disputed_charge: { refund: 0.9, reverse_fee: 0.6, escalate: 0.5, verify_id: 0.45, callback: 0.4, offer_plan: 0.3, freeze_account: 0.35 },
       account_locked: { verify_id: 0.88, escalate: 0.6, callback: 0.55, freeze_account: 0.4, reverse_fee: 0.3, refund: 0.3, offer_plan: 0.35 },
       loan_inquiry: { offer_plan: 0.85, callback: 0.5, verify_id: 0.45, escalate: 0.4, reverse_fee: 0.3, refund: 0.25, freeze_account: 0.2 },
@@ -41,7 +41,7 @@ const DOMAINS = {
   },
   travel: {
     rare: "medical",
-    truth: {
+    seed: {
       cancellation: { rebook: 0.84, refund: 0.78, voucher: 0.6, compensate: 0.5, escalate: 0.45, callback: 0.4, upgrade_seat: 0.3 },
       delay: { compensate: 0.85, voucher: 0.66, rebook: 0.6, upgrade_seat: 0.55, refund: 0.5, callback: 0.4, escalate: 0.4 },
       rebooking: { rebook: 0.9, upgrade_seat: 0.6, voucher: 0.5, compensate: 0.45, refund: 0.4, callback: 0.4, escalate: 0.35 },
@@ -51,7 +51,7 @@ const DOMAINS = {
   },
   retail: {
     rare: "chargeback",
-    truth: {
+    seed: {
       return: { refund: 0.88, store_credit: 0.7, replace: 0.55, discount: 0.5, reship: 0.4, callback: 0.4, escalate: 0.35 },
       damaged: { replace: 0.9, refund: 0.7, reship: 0.6, store_credit: 0.55, discount: 0.45, callback: 0.4, escalate: 0.4 },
       missing_order: { reship: 0.87, refund: 0.68, replace: 0.6, escalate: 0.5, store_credit: 0.5, callback: 0.45, discount: 0.3 },
@@ -61,7 +61,7 @@ const DOMAINS = {
   },
   healthcare: {
     rare: "clinical_urgent",
-    truth: {
+    seed: {
       claim_denied: { appeal: 0.85, prior_auth: 0.8, escalate: 0.55, expedite: 0.5, callback: 0.45, refund: 0.4, reschedule: 0.3 },
       rx_delay: { expedite: 0.88, prior_auth: 0.66, escalate: 0.6, callback: 0.5, appeal: 0.4, reschedule: 0.35, refund: 0.3 },
       appointment: { reschedule: 0.86, expedite: 0.6, callback: 0.55, escalate: 0.45, prior_auth: 0.3, appeal: 0.3, refund: 0.25 },
@@ -71,17 +71,70 @@ const DOMAINS = {
   },
 };
 
-// Resolve the active industry's domain (concerns/strategies derived from its truth matrix).
+// The REWARD MODEL ("efficacy") is derived once per industry by an LLM from that industry's real
+// knowledge base and cached — so the outcomes the brain learns from come from real domain reasoning,
+// not a hand-coded table. The `seed` matrix below is only an offline fallback if the LLM is unavailable.
+const efficacyPath = (p) => path.join(process.cwd(), "data", `efficacy-${p || loadSpec().profile || "telecom"}.json`);
+function loadEfficacy(p) {
+  try {
+    return JSON.parse(fs.readFileSync(efficacyPath(p), "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+// Resolve the active industry's domain. truth = the LLM-grounded reward model if derived, else the seed.
 function domain() {
-  const d = DOMAINS[loadSpec().profile] || DOMAINS.telecom;
-  const concerns = Object.keys(d.truth);
-  const strategies = [...new Set(concerns.flatMap((c) => Object.keys(d.truth[c])))];
-  return { concerns, strategies, truth: d.truth, rare: d.rare };
+  const prof = loadSpec().profile || "telecom";
+  const d = DOMAINS[prof] || DOMAINS.telecom;
+  const concerns = Object.keys(d.seed);
+  const strategies = [...new Set(concerns.flatMap((c) => Object.keys(d.seed[c])))];
+  const truth = loadEfficacy(prof) || d.seed;
+  return { concerns, strategies, truth, rare: d.rare, profile: prof };
+}
+
+// Derive (and cache) the per-industry reward model from the live knowledge base via an LLM. Idempotent:
+// returns the cache if present. This is what makes the learning environment real + dynamic per industry.
+export async function ensureEfficacy(emit) {
+  const prof = loadSpec().profile || "telecom";
+  const cached = loadEfficacy(prof);
+  if (cached) return cached;
+  const d = DOMAINS[prof] || DOMAINS.telecom;
+  const concerns = Object.keys(d.seed);
+  const strategies = [...new Set(concerns.flatMap((c) => Object.keys(d.seed[c])))];
+  const spec = loadSpec();
+  const kb = (spec.knowledge || []).map((k) => `- ${k.title}: ${k.text}`).join("\n").slice(0, 4000);
+  if (emit) emit({ deriving: true });
+  let matrix = null;
+  try {
+    const out = await askJsonAsync(
+      `You are a senior ${spec.meta.domain} operations expert. Using ONLY this knowledge base and real domain best practice, estimate how effective each RESOLUTION STRATEGY is at actually resolving each CONCERN — as the probability (0-100) that the strategy resolves it and keeps the customer.\nKnowledge base:\n${kb}\nConcerns: ${JSON.stringify(concerns)}\nStrategies: ${JSON.stringify(strategies)}\nReturn STRICT JSON {"<concern>": {"<strategy>": <0-100>, ...}, ...} covering every concern and every strategy. Make the differences realistic — the best strategy per concern should clearly win; high-stakes concerns (e.g. fraud/medical/urgent) should favor escalation.`,
+      { timeout: 60000, tier: "accurate" }
+    );
+    matrix = {};
+    for (const c of concerns) {
+      matrix[c] = {};
+      for (const s of strategies) {
+        const v = Number(out?.[c]?.[s]);
+        matrix[c][s] = Number.isFinite(v) ? Math.max(0.05, Math.min(0.98, v / 100)) : d.seed[c]?.[s] ?? 0.3;
+      }
+    }
+  } catch {
+    matrix = d.seed; // graceful offline fallback
+  }
+  try {
+    fs.mkdirSync(path.dirname(efficacyPath(prof)), { recursive: true });
+    fs.writeFileSync(efficacyPath(prof), JSON.stringify(matrix));
+  } catch {
+    /* in-memory only */
+  }
+  if (emit) emit({ deriving: false, source: matrix === d.seed ? "seed-fallback" : "kb-llm" });
+  return matrix;
 }
 
 // Backward-compatible exports (telecom defaults).
-export const CONCERNS = Object.keys(DOMAINS.telecom.truth);
-export const STRATEGIES = [...new Set(CONCERNS.flatMap((c) => Object.keys(DOMAINS.telecom.truth[c])))];
+export const CONCERNS = Object.keys(DOMAINS.telecom.seed);
+export const STRATEGIES = [...new Set(CONCERNS.flatMap((c) => Object.keys(DOMAINS.telecom.seed[c])))];
 
 // How often each concern shows up in the live case stream — the rare concern is heavily under-sampled.
 function pickConcern(d) {

@@ -1,5 +1,5 @@
 import { sseEvent } from "@/core/sse.mjs";
-import { trainRounds, judgeBrain, resetBrain, baselineScore } from "@/core/brain.mjs";
+import { trainRounds, judgeBrain, resetBrain, baselineScore, ensureEfficacy } from "@/core/brain.mjs";
 import { recordAudit } from "@/core/audit.mjs";
 
 export const runtime = "nodejs";
@@ -16,6 +16,10 @@ export async function GET(req: Request) {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const send = (event: string, data: unknown) => controller.enqueue(encoder.encode(sseEvent(event, data)));
+      // Derive the reward model from THIS industry's knowledge base via an LLM (cached) — the outcomes
+      // the brain learns from come from real domain reasoning, not a hand-coded table.
+      send("phase", { name: "grounding" });
+      await ensureEfficacy();
       resetBrain(); // wipe any prior training — every run starts cold
       send("baseline", { success: baselineScore(400) }); // honest pre-training answer, computed fresh
       for (let i = 0; i < rounds; i++) {

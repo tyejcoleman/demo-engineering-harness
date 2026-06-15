@@ -25,9 +25,10 @@ move, watch the system **teach itself** the best response, and read the governed
   each reply in a knowledge base, simulates candidate strategies against a digital-twin of the customer,
   and takes a **governed, audited** action. A 3D context graph lights up as it reasons. Pausable,
   steppable, replayable — with a real-time **QA-coherence meter**.
-- **A brain that learns (and proves it).** A policy learner accumulates outcome evidence, an offline
+- **A brain that learns (and proves it).** A real policy learner accumulates outcome evidence, an offline
   **judge** corrects what the live loop under-sampled, then the policy is **distilled** and **tested on
-  unseen data** vs. an untrained baseline. The before→after lift is measured fresh every run.
+  unseen data** vs. an untrained baseline. The reward model it learns against is **derived by an LLM from
+  each industry's knowledge base** (cached per industry) — not hand-coded. The lift is measured fresh every run.
 - **The loop is closed.** The live agent **consults** the learned brain ("recommends *credit* — 88% over
   139 cases") and **feeds each outcome back** into the graph. Train it → the live demo measurably improves.
 - **Five industries, one click.** Telecom, fintech, travel, retail, healthcare — each with its own CRM,
@@ -44,6 +45,10 @@ move, watch the system **teach itself** the best response, and read the governed
 
 It's a **contextual bandit that learns a decision policy, plus an offline counterfactual evaluator**:
 
+0. **Reward model = LLM-grounded, per industry.** Before training, an LLM reads that industry's knowledge
+   base and derives how effective each strategy is per concern (cached). So the outcomes the brain learns
+   from come from real domain reasoning over real KB data — not a hand-coded table. (A static seed is kept
+   only as an offline fallback.)
 1. **Context graph = memory.** Nodes are *concerns* (billing, outage, fraud…) and *strategies* (refund,
    credit, escalate…); weighted edges record observed outcomes. It's the source of truth + audit trail.
 2. **Online learning (ε-greedy).** Cases stream in (some concerns rare); the agent explores or exploits,
