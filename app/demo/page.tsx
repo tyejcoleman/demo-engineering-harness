@@ -97,7 +97,7 @@ export default function Demo() {
   const [profiles, setProfiles] = useState<{ id: string; label: string; brand: string; accent?: string }[]>([]);
   const [activeProfile, setActiveProfile] = useState("telecom");
   const [formats, setFormats] = useState<{ id: string; label: string; blurb?: string }[]>([]);
-  const [format, setFormat] = useState("agent-assist");
+  const [format, setFormat] = useState("ai-agent");
   const [briefing, setBriefing] = useState("");
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(900);
@@ -286,7 +286,7 @@ export default function Demo() {
       setProfiles(r.profiles || []);
       setFormats(r.formats || []);
       setActiveProfile(r.active || "telecom");
-      setFormat(r.format || "agent-assist");
+      setFormat(r.format || "ai-agent");
     } catch {
       /* ignore */
     }
@@ -487,14 +487,6 @@ export default function Demo() {
                   {buffered > 0 && <span className="text-[10px] text-accent">{buffered} queued</span>}
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className={`flex items-center gap-1 rounded-lg border border-edge bg-panel2 p-0.5${ring("format")}`}>
-                    <span className="px-1 text-[10px] uppercase tracking-wider text-muted">Format</span>
-                    {formats.map((f) => (
-                      <button key={f.id} onClick={() => setFmt(f.id)} disabled={running} title={f.blurb} className={`rounded-md px-2.5 py-1 text-xs font-medium transition disabled:opacity-50 ${format === f.id ? "bg-accent text-white" : "text-muted hover:text-fg"}`}>
-                        {f.label}
-                      </button>
-                    ))}
-                  </div>
                   <button onClick={start} disabled={running || gen} className="btn-primary">{running ? "● Live" : outcome ? "Run again" : "Start call"}</button>
                 </div>
               </div>

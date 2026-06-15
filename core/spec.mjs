@@ -17,7 +17,7 @@ export const DEFAULT_SPEC = {
     target: 90, // readiness / self-evolution bar
   },
   profile: "telecom", // active industry/company dataset
-  format: "agent-assist", // active POC form factor
+  format: "ai-agent", // autonomous AI agent handles the customer directly (default)
   scenarios: TELECOM.scenarios,
   knowledge: TELECOM.knowledge,
   personas: {

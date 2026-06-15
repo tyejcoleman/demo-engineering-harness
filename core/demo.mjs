@@ -74,7 +74,7 @@ function genAccount() {
 
 export async function streamDemo(emit, opts = {}) {
   const t0 = Date.now(); // real handle time (how long the AI took end-to-end)
-  const rounds = opts.rounds ?? 2;
+  const rounds = opts.rounds ?? 3;
   const live = opts.live !== false;
   const spec = loadSpec();
   const format = spec.format || "agent-assist";
@@ -191,10 +191,8 @@ export async function streamDemo(emit, opts = {}) {
 
     emit({ kind: "thinking", who: "agent" });
     try {
-      const repPrompt = isAuto
-        ? `${FRAME}\nYou are the autonomous AI agent for ${spec.meta.brand}, handling this ${spec.meta.domain} customer directly on a live call (no human in the loop). You decided: "${nba || "help within policy"}". Reply to the customer yourself — natural and warm — ONE short sentence (≤20 words), contractions, take ownership and act. Customer just said: "${cust}". Output only your spoken reply.`
-        : `${FRAME}\nYou are ${spec.meta.agentName}, a warm, capable ${spec.meta.brand} support agent on a live phone call. Speak like a real human agent: natural and conversational, ONE short sentence (≤22 words): briefly acknowledge, then act. Use contractions, take ownership ("let me…", "I've gone ahead and…"). No corporate script, no "I understand your frustration" cliché, don't read policy numbers at the customer.\nYour assist tool suggests: "${nba || "help within policy"}".\nCustomer just said: "${cust}".\nReply out loud to the customer. Output only your spoken reply.`;
-      const rep = one(await askAsync(repPrompt, { timeout: 45000, tier: "fast" })).slice(0, 500);
+      const repPrompt = `${FRAME}\nYou are ${isAuto ? `the autonomous AI agent for ${spec.meta.brand}` : `${spec.meta.agentName}, a ${spec.meta.brand} support agent`} on a live ${spec.meta.domain} call — warm, sharp, and genuinely human, with real emotional intelligence. Your plan: "${nba || "help within policy"}".\nFULL conversation so far:\n${transcript()}\nReply to the customer NOW: 1-2 natural spoken sentences. Show empathy that actually fits THIS moment (not generic), then take concrete ownership and DO something specific that moves the resolution forward. Hard rules: do NOT repeat any promise or phrasing you already used; escalate specificity each turn; no scripted clichés ("I understand your frustration", "I hear you"); no policy numbers read aloud; sound like a real person who cares. Output only your spoken reply.`;
+      const rep = one(await askAsync(repPrompt, { timeout: 45000, tier: "accurate" })).slice(0, 500);
       if (inRole(rep)) {
         convo.push({ who: "agent", text: rep });
         tr("rep-agent", "reply");
@@ -239,10 +237,8 @@ export async function streamDemo(emit, opts = {}) {
   if (chosen) {
     emit({ kind: "thinking", who: "agent" });
     try {
-      const applyPrompt = isAuto
-        ? `${FRAME}\nYou are the autonomous AI agent for ${spec.meta.brand}. Apply this resolution now: "${chosen.strategy}". Tell the customer what you're doing — warm, natural, specific — ONE short sentence (≤20 words), contractions. Output only your spoken reply.`
-        : `${FRAME}\nYou are ${spec.meta.agentName}, the ${spec.meta.brand} support agent, on a live call. Apply this resolution now: "${chosen.strategy}". Tell the customer what you're doing for them like a real human agent would — warm, natural, specific — ONE short sentence (≤20 words), contractions, take ownership. Output only your spoken reply.`;
-      const rep = one(await askAsync(applyPrompt, { timeout: 45000, tier: "fast" })).slice(0, 500);
+      const applyPrompt = `${FRAME}\nYou are ${isAuto ? `the autonomous AI agent for ${spec.meta.brand}` : `${spec.meta.agentName}, the ${spec.meta.brand} support agent`} on a live ${spec.meta.domain} call. Apply this resolution now: "${chosen.strategy}".\nFULL conversation so far:\n${transcript()}\nClose the loop with the customer in 1-2 warm, specific sentences: name exactly what you're doing for them and what changes as a result. Genuine, human, confident — no clichés, no repetition of earlier lines. Output only your spoken reply.`;
+      const rep = one(await askAsync(applyPrompt, { timeout: 45000, tier: "accurate" })).slice(0, 500);
       if (inRole(rep)) {
         convo.push({ who: "agent", text: rep });
         emit({ kind: "turn", who: "agent", text: rep, sentiment: "positive" });
