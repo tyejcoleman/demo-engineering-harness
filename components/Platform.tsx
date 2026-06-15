@@ -475,8 +475,10 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
                   const h = liveCurve.length ? liveCurve : brain?.history || [];
                   const cold = coldBaseline ?? (h.length ? h[0].success : null);
                   if (cold == null || !h.length) return null;
+                  const j = brain?.judge;
+                  if (j) return <span className="text-[11px] text-muted">untrained <b className="text-bad">{cold}%</b> → trained <b className="text-fg">{j.before}%</b> → optimized <b className="text-good">{j.after}%</b> <span className="text-good">(+{Math.max(0, j.after - cold)})</span></span>;
                   const now = brain?.success || h[h.length - 1].success;
-                  return <span className="text-[11px] text-muted">before self-learning <b className="text-bad">{cold}%</b> → after <b className="text-good">{now}%</b> <span className="text-good">(+{Math.max(0, now - cold)})</span></span>;
+                  return <span className="text-[11px] text-muted">untrained <b className="text-bad">{cold}%</b> → now <b className="text-good">{now}%</b></span>;
                 })()}
               </div>
               <div className="mt-2 rounded-lg border border-edge bg-panel2 p-2">
@@ -498,7 +500,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
                   );
                 })()}
               </div>
-              <div className="mt-1 text-right text-xs text-fg">now <b>{brain?.success || 0}%</b> {brain?.judge ? <span className="text-good">· judge {brain.judge.after > brain.judge.before ? `${brain.judge.before}% → ${brain.judge.after}%` : `validated ${brain.judge.after}%`}</span> : null}</div>
+              <div className="mt-1 text-right text-[10px] text-muted">untrained = no policy · trained = online learning · optimized = after the judge&apos;s offline correction</div>
             </div>
 
             <div className="mt-4">
@@ -513,7 +515,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
 
             {brain?.judge && (
               <div className="card-inset mt-4 p-3">
-                <div className="flex items-center justify-between"><div className="label">Judge LLM · meta-review</div>{brain.judge.after > brain.judge.before ? <span className="text-xs font-medium text-good">lifted {brain.judge.before}% → {brain.judge.after}%</span> : <span className="text-xs text-muted">✓ validated · already optimal at {brain.judge.after}%</span>}</div>
+                <div className="flex items-center justify-between"><div className="label">Judge LLM · meta-review</div>{brain.judge.after > brain.judge.before ? <span className="text-xs font-medium text-good">corrected: trained {brain.judge.before}% → optimized {brain.judge.after}%</span> : <span className="text-xs text-muted">✓ validated · already optimal at {brain.judge.after}%</span>}</div>
                 <p className="mt-1.5 text-xs leading-relaxed text-fg/85">{brain.judge.rationale}</p>
                 {brain.judge.changed && brain.judge.changed.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
