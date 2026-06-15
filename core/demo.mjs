@@ -9,7 +9,7 @@ import { loadSpec } from "./spec.mjs";
 import { recordRun } from "./history.mjs";
 import { recordAudit } from "./audit.mjs";
 import { crmPick } from "./crm.mjs";
-import { classifyConcern, policyFor, compareConcern, mapActionToStrategy, recordLiveOutcome } from "./brain.mjs";
+import { classifyConcern, policyFor, compareConcern, mapActionToStrategy, recordLiveOutcome, getBrain } from "./brain.mjs";
 import { recordFeedback } from "./feedback.mjs";
 
 const FRAME =
@@ -119,6 +119,17 @@ export async function streamDemo(emit, opts = {}) {
 
   // CLOSE THE LOOP — consult the industry's learned brain for this concern, and show before/after.
   const concern = classifyConcern(`${situation.premise} ${starter} ${situation.title}`);
+  // Human-approved improvements are injected into the agent's runtime context — so approving one
+  // genuinely changes how the agent behaves on this and future calls (a process update, not just a node).
+  const approved = (() => {
+    try {
+      return (getBrain().improvements || []).map((im) => im.text).filter(Boolean);
+    } catch {
+      return [];
+    }
+  })();
+  const approvedGuidance = approved.length ? `\nAPPROVED OPERATING DIRECTIVES (a human approved these — you MUST follow them):\n- ${approved.join("\n- ")}` : "";
+  if (approved.length) tr("policy.update", `${approved.length} approved directive(s) applied to the agent`);
   try {
     const pol = policyFor(concern);
     const cmp = compareConcern(concern);
@@ -174,8 +185,8 @@ export async function streamDemo(emit, opts = {}) {
     let nba = null;
     try {
       const nbaPrompt = isAuto
-        ? `You are an autonomous AI agent for ${spec.meta.brand} handling this ${spec.meta.domain} customer directly. Customer just said: "${cust}". Relevant policy ${src ? src.id : "(none)"}: "${src ? src.text : ""}". Decide your ONE next best action right now, within authority — imperative voice, <=20 words, no preamble. Output only the action.`
-        : `You are the real-time AI assist whispering to a live HUMAN agent (the customer cannot hear you). Customer just said: "${cust}". Relevant policy ${src ? src.id : "(none)"}: "${src ? src.text : ""}". Give ONE crisp, specific next-best-action the agent should do right now, within their authority — imperative voice, <=20 words, no preamble, no greeting. Output only the action.`;
+        ? `You are an autonomous AI agent for ${spec.meta.brand} handling this ${spec.meta.domain} customer directly. Customer just said: "${cust}". Relevant policy ${src ? src.id : "(none)"}: "${src ? src.text : ""}". Decide your ONE next best action right now, within authority — imperative voice, <=20 words, no preamble.${approvedGuidance}\nOutput only the action.`
+        : `You are the real-time AI assist whispering to a live HUMAN agent (the customer cannot hear you). Customer just said: "${cust}". Relevant policy ${src ? src.id : "(none)"}: "${src ? src.text : ""}". Give ONE crisp, specific next-best-action the agent should do right now, within their authority — imperative voice, <=20 words, no preamble, no greeting.${approvedGuidance}\nOutput only the action.`;
       nba = one(await askAsync(nbaPrompt, { timeout: 45000, tier: "accurate" })).slice(0, 320);
     } catch {
       /* skip */
@@ -191,7 +202,7 @@ export async function streamDemo(emit, opts = {}) {
 
     emit({ kind: "thinking", who: "agent" });
     try {
-      const repPrompt = `${FRAME}\nYou are ${isAuto ? `the autonomous AI agent for ${spec.meta.brand}` : `${spec.meta.agentName}, a ${spec.meta.brand} support agent`} on a live ${spec.meta.domain} call — warm, sharp, and genuinely human, with real emotional intelligence. Your plan: "${nba || "help within policy"}".\nFULL conversation so far:\n${transcript()}\nReply to the customer NOW: 1-2 natural spoken sentences. Show empathy that actually fits THIS moment (not generic), then take concrete ownership and DO something specific that moves the resolution forward. Hard rules: do NOT repeat any promise or phrasing you already used; escalate specificity each turn; no scripted clichés ("I understand your frustration", "I hear you"); no policy numbers read aloud; sound like a real person who cares. Output only your spoken reply.`;
+      const repPrompt = `${FRAME}\nYou are ${isAuto ? `the autonomous AI agent for ${spec.meta.brand}` : `${spec.meta.agentName}, a ${spec.meta.brand} support agent`} on a live ${spec.meta.domain} call — warm, sharp, and genuinely human, with real emotional intelligence. Your plan: "${nba || "help within policy"}".\nFULL conversation so far:\n${transcript()}${approvedGuidance}\nReply to the customer NOW: 1-2 natural spoken sentences. Show empathy that actually fits THIS moment (not generic), then take concrete ownership and DO something specific that moves the resolution forward. Hard rules: do NOT repeat any promise or phrasing you already used; escalate specificity each turn; no scripted clichés ("I understand your frustration", "I hear you"); no policy numbers read aloud; sound like a real person who cares. Output only your spoken reply.`;
       const rep = one(await askAsync(repPrompt, { timeout: 45000, tier: "accurate" })).slice(0, 500);
       if (inRole(rep)) {
         convo.push({ who: "agent", text: rep });
@@ -237,7 +248,7 @@ export async function streamDemo(emit, opts = {}) {
   if (chosen) {
     emit({ kind: "thinking", who: "agent" });
     try {
-      const applyPrompt = `${FRAME}\nYou are ${isAuto ? `the autonomous AI agent for ${spec.meta.brand}` : `${spec.meta.agentName}, the ${spec.meta.brand} support agent`} on a live ${spec.meta.domain} call. Apply this resolution now: "${chosen.strategy}".\nFULL conversation so far:\n${transcript()}\nClose the loop with the customer in 1-2 warm, specific sentences: name exactly what you're doing for them and what changes as a result. Genuine, human, confident — no clichés, no repetition of earlier lines. Output only your spoken reply.`;
+      const applyPrompt = `${FRAME}\nYou are ${isAuto ? `the autonomous AI agent for ${spec.meta.brand}` : `${spec.meta.agentName}, the ${spec.meta.brand} support agent`} on a live ${spec.meta.domain} call. Apply this resolution now: "${chosen.strategy}".\nFULL conversation so far:\n${transcript()}${approvedGuidance}\nClose the loop with the customer in 1-2 warm, specific sentences: name exactly what you're doing for them and what changes as a result. Genuine, human, confident — no clichés, no repetition of earlier lines. Output only your spoken reply.`;
       const rep = one(await askAsync(applyPrompt, { timeout: 45000, tier: "accurate" })).slice(0, 500);
       if (inRole(rep)) {
         convo.push({ who: "agent", text: rep });
