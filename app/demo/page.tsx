@@ -7,7 +7,7 @@ import { Platform } from "@/components/Platform";
 type Assist = { cat: string; title: string; body?: string; badge?: string; source?: string; branches?: { strategy: string; save: number }[]; chosen?: string; concern?: string; untrained?: number; trained?: number | null; optimal?: number; strategy?: string | null };
 type Turn = { who: string; text: string; sentiment: string };
 type Trace = { label: string; detail: string };
-type Outcome = { saveArr: number; mrr?: number; qa: number; disposition: string; summary: string; concern?: string };
+type Outcome = { saveArr: number; mrr?: number; qa: number; disposition: string; summary: string; concern?: string; handleMs?: number };
 type Situation = { id: string; title: string; premise: string; starter?: string; rationale?: string };
 type RunResult = { title: string; disposition: string; qa: number };
 type Summary = { claude: boolean; provider: string; target: number; ready: number; demos: number; mcpTools: number; envLabel: string };
@@ -68,7 +68,13 @@ export default function Demo() {
   const [graph, setGraph] = useState<Graph>({ nodes: [], edges: [], trail: [] });
   const [sentiment, setSentiment] = useState("neutral");
   const [sentTrail, setSentTrail] = useState<string[]>([]);
-  const [cxEval, setCxEval] = useState<{ score: number; satisfied: boolean; critique: string; improvement: string } | null>(null);
+  const [cxEval, setCxEval] = useState<{ csat: number; resolution: number; fcr: boolean; ces: number; empathy: number; compliance: boolean; satisfied: boolean; critique: string; improvement: string } | null>(null);
+  const [improved, setImproved] = useState(false);
+  const approveImprovement = async () => {
+    if (!cxEval?.improvement) return;
+    setImproved(true);
+    try { await fetch("/api/brain", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "apply_improvement", text: cxEval.improvement, concern: outcome?.concern }) }); } catch { /* ignore */ }
+  };
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [thinking, setThinking] = useState<string | null>(null);
   const [phase, setPhase] = useState<string>("");
@@ -151,7 +157,7 @@ export default function Demo() {
     if (d.kind === "meta") setMeta({ title: d.title as string, account: d.account as string, format: d.format as string, agentName: d.agentName as string, brand: d.brand as string });
     else if (d.kind === "turn") setTurns((t) => (t.length && t[t.length - 1].who === d.who && t[t.length - 1].text === d.text ? t : [...t, d as unknown as Turn]));
     else if (d.kind === "sentiment") { setSentiment(d.value as string); setSentTrail((t) => [...t, d.value as string]); }
-    else if (d.kind === "cxeval") setCxEval({ score: d.score as number, satisfied: d.satisfied as boolean, critique: d.critique as string, improvement: d.improvement as string });
+    else if (d.kind === "cxeval") { setCxEval({ csat: d.csat as number, resolution: d.resolution as number, fcr: d.fcr as boolean, ces: d.ces as number, empathy: d.empathy as number, compliance: d.compliance as boolean, satisfied: d.satisfied as boolean, critique: d.critique as string, improvement: d.improvement as string }); setImproved(false); }
     else if (d.kind === "notice") setAssists((a) => [...a, { cat: "notice", title: d.title as string, body: d.body as string }]);
     else if (d.kind === "assist") setAssists((a) => [...a, d as unknown as Assist]);
     else if (d.kind === "outcome") {
@@ -163,7 +169,7 @@ export default function Demo() {
   const stepOne = () => { const d = bufferRef.current.shift(); if (d) applyEvent(d); setBuffered(bufferRef.current.length); };
   const resetStage = () => {
     setTurns(sitRef.current.starter ? [{ who: "customer", text: sitRef.current.starter, sentiment: "negative" }] : []);
-    setAssists([]); setTrace([]); setGraph({ nodes: [], edges: [], trail: [] }); setOutcome(null); setSentiment("neutral"); setSentTrail([]); setCxEval(null); setThinking(null); setPhase("");
+    setAssists([]); setTrace([]); setGraph({ nodes: [], edges: [], trail: [] }); setOutcome(null); setSentiment("neutral"); setSentTrail([]); setCxEval(null); setImproved(false); setThinking(null); setPhase("");
   };
   const replay = () => { resetStage(); bufferRef.current = [...fullLogRef.current]; setBuffered(bufferRef.current.length); pausedRef.current = false; setPaused(false); };
   // Clean slate: wipe the whole live surface back to a fresh, pre-call state.
@@ -174,7 +180,7 @@ export default function Demo() {
     pausedRef.current = false; setPaused(false); setRunning(false);
     setMeta(null); setTurns([]); setAssists([]); setTrace([]);
     setGraph({ nodes: [], edges: [], trail: [] }); setOutcome(null);
-    setSentiment("neutral"); setSentTrail([]); setCxEval(null); setThinking(null); setPhase(""); setSecs(0);
+    setSentiment("neutral"); setSentTrail([]); setCxEval(null); setImproved(false); setThinking(null); setPhase(""); setSecs(0);
   };
 
   // paced reveal loop
@@ -211,7 +217,7 @@ export default function Demo() {
     setOutcome(null);
     setSentiment("neutral");
     setSentTrail([]);
-    setCxEval(null);
+    setCxEval(null); setImproved(false);
     setThinking(null);
     setPhase("");
     setSecs(0);
@@ -662,18 +668,39 @@ export default function Demo() {
               const esc = outcome.disposition === "Escalated";
               const fleet = won ? outcome.saveArr * 100 : 0; // illustrative: 100 comparable resolutions/yr
               return (
-                <div className={`mt-2 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-edge bg-panel px-4 py-2 text-xs${ring("outcome")}`}>
-                  <span className={`rounded-full px-2.5 py-0.5 font-medium ${dispColor(outcome.disposition)}`}>{outcome.disposition}</span>
-                  {esc ? (
-                    <span className="text-warn">handed to a human specialist · within authority ✓</span>
+                <div className={`mt-2 shrink-0 rounded-xl border border-edge bg-panel px-4 py-2 text-xs${ring("outcome")}`}>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span className={`rounded-full px-2.5 py-0.5 font-medium ${dispColor(outcome.disposition)}`}>{outcome.disposition}</span>
+                    {esc ? (
+                      <span className="text-warn">handed to a human specialist · within authority ✓</span>
+                    ) : (
+                      <span className="text-fg">{won ? "Retained" : "At risk"} <b>${outcome.saveArr.toLocaleString()}</b> ARR</span>
+                    )}
+                    {won && fleet > 0 && <span className="text-good" title="illustrative: this account's ARR × 100 comparable resolutions/yr">Fleet ROI ≈ <b>${fleet.toLocaleString()}</b>/yr</span>}
+                    {outcome.handleMs ? <span className="text-fg" title="average handle time — how long the AI took end-to-end">AHT <b>{Math.max(1, Math.round(outcome.handleMs / 1000))}s</b></span> : null}
+                    <span className="text-fg">QA <b>{outcome.qa}</b></span>
+                    <span className="text-good">Compliance ✓</span>
+                  </div>
+                  {cxEval ? (
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-edge pt-1.5 text-[11px]">
+                      <span className="font-medium text-muted" title="independent CX judge — blind to the demo">CX judge</span>
+                      <span className={cxEval.csat >= 70 ? "text-good" : "text-warn"}>CSAT <b>{cxEval.csat}%</b></span>
+                      <span className="text-fg">FCR {cxEval.fcr ? <b className="text-good">yes</b> : <b className="text-bad">no</b>}</span>
+                      <span className="text-fg">Resolution <b>{cxEval.resolution}%</b></span>
+                      <span className="text-fg">Effort <b>{cxEval.ces}</b></span>
+                      <span className="text-fg">Empathy <b>{cxEval.empathy}</b></span>
+                      {cxEval.improvement && (improved ? (
+                        <span className="text-good">✓ approved → added to context graph</span>
+                      ) : (
+                        <span className="flex min-w-0 items-center gap-1.5">
+                          <span className="truncate text-muted" title={cxEval.critique}>↻ {cxEval.improvement}</span>
+                          <button onClick={approveImprovement} className="btn-ghost shrink-0 !border-accent/50 !px-2 !py-0.5 !text-[10px] !text-accent">Approve → graph</button>
+                        </span>
+                      ))}
+                    </div>
                   ) : (
-                    <span className="text-fg">{won ? "Retained" : "At risk"} <b>${outcome.saveArr.toLocaleString()}</b> ARR</span>
+                    <div className="mt-1 truncate text-muted">{outcome.summary}</div>
                   )}
-                  {won && fleet > 0 && <span className="text-good" title="illustrative: this account's ARR × 100 comparable resolutions/yr">Fleet ROI ≈ <b>${fleet.toLocaleString()}</b>/yr</span>}
-                  <span className="text-fg">QA <b>{outcome.qa}</b></span>
-                  {cxEval && <span title={`independent CX judge — ${cxEval.critique}`} className={cxEval.satisfied ? "text-good" : "text-warn"}>CX <b>{cxEval.score}%</b> {cxEval.satisfied ? "satisfied" : "unsatisfied"}</span>}
-                  <span className="text-good">Compliance ✓</span>
-                  <span className="min-w-0 flex-1 truncate text-muted">{cxEval?.improvement ? `↻ ${cxEval.improvement}` : outcome.summary}</span>
                 </div>
               );
             })()}

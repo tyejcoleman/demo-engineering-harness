@@ -17,6 +17,7 @@ const COLOR: Record<string, string> = {
   twin: "#e85ada", // the simulated customer (digital twin)
   action: "#0f9d8f",
   outcome: "#15a35b",
+  improvement: "#e8b84b", // human-approved fix written into the graph
 };
 const DIM = "#aeb8cc"; // off-trail nodes/links, muted on the light canvas
 const LEGEND: [string, string][] = [
@@ -29,6 +30,7 @@ const LEGEND: [string, string][] = [
   ["twin", "customer twin"],
   ["action", "action"],
   ["outcome", "outcome"],
+  ["improvement", "approved fix"],
 ];
 const EXPLAIN: Record<string, string> = {
   account: "The customer's live CRM account — fetched via MCP crm.read the moment the call connected.",
@@ -40,6 +42,7 @@ const EXPLAIN: Record<string, string> = {
   twin: "A digital twin of this customer — each candidate strategy is scored against it to predict the save rate before acting.",
   action: "The concrete action taken — requested, approved and audited through the governance ledger.",
   outcome: "The post-call disposition and QA score for this contact.",
+  improvement: "A human-approved improvement from the active-feedback loop, written into the graph as durable knowledge.",
 };
 
 type Detail =

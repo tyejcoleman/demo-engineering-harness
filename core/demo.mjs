@@ -73,6 +73,7 @@ function genAccount() {
 }
 
 export async function streamDemo(emit, opts = {}) {
+  const t0 = Date.now(); // real handle time (how long the AI took end-to-end)
   const rounds = opts.rounds ?? 2;
   const live = opts.live !== false;
   const spec = loadSpec();
@@ -305,7 +306,7 @@ export async function streamDemo(emit, opts = {}) {
     } catch {
       /* loop-back best-effort */
     }
-    emit({ kind: "outcome", saveArr: won ? acct.mrr * 12 : 0, mrr: acct.mrr, qa: Number(fin.score) || 0, disposition: fin.disposition || "—", summary: fin.summary || "", concern });
+    emit({ kind: "outcome", saveArr: won ? acct.mrr * 12 : 0, mrr: acct.mrr, qa: Number(fin.score) || 0, disposition: fin.disposition || "—", summary: fin.summary || "", concern, handleMs: Date.now() - t0 });
     // write this run into demo memory so the intelligence layer can reason over it later
     try {
       recordRun({ title: situation.title, premise: situation.premise, starter, disposition: fin.disposition, qa: Number(fin.score) || 0, action: (fin.action && fin.action.type) || "" });
@@ -319,15 +320,14 @@ export async function streamDemo(emit, opts = {}) {
     try {
       emit({ kind: "thinking", who: "assist" });
       const cx = await askJsonAsync(
-        `You are a senior customer-experience quality auditor at a ${spec.meta.domain} company, reviewing a real support call transcript. Judge ONLY the genuine quality from the customer's side: did the agent address the ROOT issue, show real empathy, resolve within policy, and would this customer actually be satisfied and stay? Be a tough but fair critic — give no credit for deflection or empty reassurance.\nTranscript:\n${transcript()}\nAgent's available knowledge/policy:\n${(spec.knowledge || []).map((k) => `${k.title}: ${k.text}`).join("\n").slice(0, 1500)}\nReturn {"score":<0-100 genuine customer satisfaction>,"satisfied":<true|false>,"critique":"<1-2 blunt sentences>","improvement":"<one concrete change to the agent's knowledge, policy or approach that would raise this>"}`,
+        `You are a senior customer-experience quality auditor at a ${spec.meta.domain} company scoring a real support call against industry-standard contact-center KPIs. Be a tough, fair critic — give NO credit for deflection or empty reassurance.\nTranscript:\n${transcript()}\nAgent's available knowledge/policy:\n${(spec.knowledge || []).map((k) => `${k.title}: ${k.text}`).join("\n").slice(0, 1500)}\nScore these: csat (overall customer satisfaction 0-100), resolution (was the ROOT issue actually resolved 0-100), fcr (first-contact resolution, true|false), ces (customer ease 0-100, higher = less effort), empathy (genuine tone 0-100), compliance (disclosure + identity handled, true|false). Return {"csat":<int>,"resolution":<int>,"fcr":<bool>,"ces":<int>,"empathy":<int>,"compliance":<bool>,"satisfied":<bool>,"critique":"<1-2 blunt sentences>","improvement":"<one concrete change to knowledge/policy/approach that would raise these>"}`,
         { timeout: 45000, tier: "accurate" }
       );
-      const cxScore = Math.max(0, Math.min(100, Number(cx.score) || 0));
-      const crit = String(cx.critique || "").slice(0, 240);
-      const imp = String(cx.improvement || "").slice(0, 240);
-      emit({ kind: "cxeval", score: cxScore, satisfied: !!cx.satisfied, critique: crit, improvement: imp });
-      tr("cx-judge", `satisfaction ${cxScore}% · ${cx.satisfied ? "satisfied" : "not satisfied"}`);
-      recordFeedback(spec.profile || "telecom", { concern, score: cxScore, satisfied: !!cx.satisfied, critique: crit, improvement: imp, disposition: fin.disposition });
+      const clamp = (v) => Math.max(0, Math.min(100, Number(v) || 0));
+      const card = { csat: clamp(cx.csat), resolution: clamp(cx.resolution), fcr: !!cx.fcr, ces: clamp(cx.ces), empathy: clamp(cx.empathy), compliance: cx.compliance !== false, satisfied: !!cx.satisfied, critique: String(cx.critique || "").slice(0, 240), improvement: String(cx.improvement || "").slice(0, 240) };
+      emit({ kind: "cxeval", ...card, score: card.csat });
+      tr("cx-judge", `CSAT ${card.csat}% · FCR ${card.fcr ? "yes" : "no"} · ${card.satisfied ? "satisfied" : "not satisfied"}`);
+      recordFeedback(spec.profile || "telecom", { concern, score: card.csat, ...card, disposition: fin.disposition });
     } catch {
       /* cx eval best-effort */
     }

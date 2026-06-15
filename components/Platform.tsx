@@ -124,6 +124,11 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
   const loadAudit = async () => setAudit((await (await fetch("/api/audit", { cache: "no-store" })).json()).entries || []);
   const loadBrain = async () => setBrain(await (await fetch("/api/brain", { cache: "no-store" })).json());
   const loadFeedback = async () => setFeedback(await (await fetch("/api/feedback", { cache: "no-store" })).json());
+  const approveImprovement = async (text: string) => {
+    await fetch("/api/brain", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "apply_improvement", text }) });
+    loadBrain();
+    loadAudit();
+  };
   // Train the brain — round events are buffered and revealed under a pause/speed control so the
   // learning curve builds visibly, exactly like the live demo. The training itself is real.
   const trainBrain = () => {
@@ -548,10 +553,15 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
               <p className="mt-1 text-[11px] text-muted">A 2nd self-improvement path: an <b className="text-fg">independent CX judge</b> — blind to the demo — scores every live call on genuine customer satisfaction and proposes concrete fixes to the agent&apos;s knowledge/policy. Learns from real interactions, not simulated training.</p>
               {feedback && feedback.improvements.length > 0 && (
                 <div className="mt-2">
-                  <div className="label !text-[10px]">improvements proposed from real calls</div>
-                  <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[11px] text-fg/85">
-                    {feedback.improvements.slice(0, 4).map((x, i) => <li key={i}>{x}</li>)}
-                  </ul>
+                  <div className="label !text-[10px]">improvements proposed from real calls · approve to write into the graph</div>
+                  <div className="mt-1 space-y-1">
+                    {feedback.improvements.slice(0, 4).map((x, i) => (
+                      <div key={i} className="flex items-start gap-2 text-[11px]">
+                        <button onClick={() => approveImprovement(x)} title="human-in-the-loop: approve → adds it to the context graph" className="btn-ghost shrink-0 !border-good/50 !px-2 !py-0.5 !text-[10px] !text-good">✓ approve</button>
+                        <span className="text-fg/85">{x}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

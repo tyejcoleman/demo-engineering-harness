@@ -1,4 +1,4 @@
-import { getBrain, resetBrain, distill, validate } from "@/core/brain.mjs";
+import { getBrain, resetBrain, distill, validate, applyImprovement } from "@/core/brain.mjs";
 import { recordAudit } from "@/core/audit.mjs";
 
 export const runtime = "nodejs";
@@ -19,6 +19,11 @@ export async function POST(req: Request) {
     const result = validate(body.samples || 500);
     recordAudit({ actor: "operator", action: "brain.validate", detail: `${result.success ?? 0}% on ${result.samples ?? 0} unseen cases` });
     return Response.json({ result, brain: getBrain() }, { headers: { "Cache-Control": "no-store" } });
+  }
+  if (body.action === "apply_improvement") {
+    const brain = applyImprovement(body.text, body.concern);
+    recordAudit({ actor: "operator", action: "brain.improve", detail: `human-approved → graph: ${String(body.text || "").slice(0, 80)}` });
+    return Response.json({ brain }, { headers: { "Cache-Control": "no-store" } });
   }
   return Response.json({ error: "unknown action" }, { status: 400 });
 }

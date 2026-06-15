@@ -149,7 +149,7 @@ function pickConcern(d) {
 }
 
 function blank() {
-  return { graph: { nodes: [], edges: [] }, observed: {}, policy: {}, history: [], rounds: 0, judge: null, stage: "untrained", distilled: null, validation: null };
+  return { graph: { nodes: [], edges: [] }, observed: {}, policy: {}, history: [], rounds: 0, judge: null, stage: "untrained", distilled: null, validation: null, improvements: [] };
 }
 function read() {
   try {
@@ -213,7 +213,26 @@ function renderGraph(brain, d = domain()) {
       if (brain.policy[c] === s) trail.push("s:" + c + ":" + s);
     }
   }
+  // human-approved improvements become first-class nodes in the graph (cleared when the graph resets)
+  (brain.improvements || []).forEach((im, i) => {
+    const id = "imp:" + i;
+    add(id, "improvement", im.text.slice(0, 28));
+    const anchor = im.concern && seen.has("c:" + im.concern) ? "c:" + im.concern : "o:good";
+    edges.push({ from: anchor, to: id, rel: "improves" });
+    trail.push(id);
+  });
   return { nodes, edges, trail };
+}
+
+// HUMAN-IN-THE-LOOP — a person approves a proposed improvement; it's written into the context graph as
+// durable knowledge (persists in the brain file, shows as a node, and is cleared when the graph resets).
+export function applyImprovement(text, concern) {
+  const b = read();
+  b.improvements = b.improvements || [];
+  b.improvements.push({ text: String(text || "").slice(0, 240), concern: concern || null, at: new Date().toISOString() });
+  b.improvements = b.improvements.slice(-12);
+  write(b);
+  return getBrain();
 }
 
 export function getBrain() {
@@ -231,6 +250,7 @@ export function getBrain() {
     concerns: d.concerns,
     rare: d.rare,
     nodes: renderGraph(b, d).nodes.length,
+    improvements: b.improvements || [],
     success: b.history.length ? b.history[b.history.length - 1].success : 0,
   };
 }
