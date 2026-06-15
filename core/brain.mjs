@@ -217,7 +217,13 @@ function renderGraph(brain, d = domain()) {
   (brain.improvements || []).forEach((im, i) => {
     const id = "imp:" + i;
     add(id, "improvement", im.text.slice(0, 28));
-    const anchor = im.concern && seen.has("c:" + im.concern) ? "c:" + im.concern : "o:good";
+    // connect to the concern it improves — create that concern node if it isn't in the graph yet
+    let anchor = "o:good";
+    if (im.concern) {
+      const cid = "c:" + im.concern;
+      if (!seen.has(cid)) add(cid, "concern", im.concern);
+      anchor = cid;
+    }
     edges.push({ from: anchor, to: id, rel: "improves" });
     trail.push(id);
   });
@@ -229,7 +235,10 @@ function renderGraph(brain, d = domain()) {
 export function applyImprovement(text, concern) {
   const b = read();
   b.improvements = b.improvements || [];
-  b.improvements.push({ text: String(text || "").slice(0, 240), concern: concern || null, at: new Date().toISOString() });
+  const t = String(text || "").slice(0, 240);
+  if (!t) return getBrain();
+  if (b.improvements.some((im) => im.text === t)) return getBrain(); // idempotent — repeat approves don't duplicate the node
+  b.improvements.push({ text: t, concern: concern || null, at: new Date().toISOString() });
   b.improvements = b.improvements.slice(-12);
   write(b);
   return getBrain();

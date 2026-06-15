@@ -124,8 +124,17 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
   const loadAudit = async () => setAudit((await (await fetch("/api/audit", { cache: "no-store" })).json()).entries || []);
   const loadBrain = async () => setBrain(await (await fetch("/api/brain", { cache: "no-store" })).json());
   const loadFeedback = async () => setFeedback(await (await fetch("/api/feedback", { cache: "no-store" })).json());
+  const [impStatus, setImpStatus] = useState<Record<string, string>>({});
   const approveImprovement = async (text: string) => {
-    await fetch("/api/brain", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "apply_improvement", text }) });
+    if (impStatus[text]) return; // idempotent — already applying/applied
+    setImpStatus((s) => ({ ...s, [text]: "applying" }));
+    try {
+      await fetch("/api/brain", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "apply_improvement", text }) });
+      await new Promise((r) => setTimeout(r, 700));
+    } catch {
+      /* ignore */
+    }
+    setImpStatus((s) => ({ ...s, [text]: "done" }));
     loadBrain();
     loadAudit();
   };
@@ -557,7 +566,13 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
                   <div className="mt-1 space-y-1">
                     {feedback.improvements.slice(0, 4).map((x, i) => (
                       <div key={i} className="flex items-start gap-2 text-[11px]">
-                        <button onClick={() => approveImprovement(x)} title="human-in-the-loop: approve → adds it to the context graph" className="btn-ghost shrink-0 !border-good/50 !px-2 !py-0.5 !text-[10px] !text-good">✓ approve</button>
+                        {impStatus[x] === "done" ? (
+                          <span className="shrink-0 text-[10px] font-medium text-good">✓ in graph</span>
+                        ) : impStatus[x] === "applying" ? (
+                          <span className="shrink-0 text-[10px] text-accent">applying…</span>
+                        ) : (
+                          <button onClick={() => approveImprovement(x)} title="human-in-the-loop: approve → writes it into the context graph" className="btn-ghost shrink-0 !border-good/50 !px-2 !py-0.5 !text-[10px] !text-good">✓ approve</button>
+                        )}
                         <span className="text-fg/85">{x}</span>
                       </div>
                     ))}

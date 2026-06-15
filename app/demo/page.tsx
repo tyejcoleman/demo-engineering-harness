@@ -70,10 +70,18 @@ export default function Demo() {
   const [sentTrail, setSentTrail] = useState<string[]>([]);
   const [cxEval, setCxEval] = useState<{ csat: number; resolution: number; fcr: boolean; ces: number; empathy: number; compliance: boolean; satisfied: boolean; critique: string; improvement: string } | null>(null);
   const [improved, setImproved] = useState(false);
+  const [approving, setApproving] = useState(false);
   const approveImprovement = async () => {
-    if (!cxEval?.improvement) return;
+    if (!cxEval?.improvement || improved || approving) return;
+    setApproving(true);
+    try {
+      await fetch("/api/brain", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "apply_improvement", text: cxEval.improvement, concern: outcome?.concern }) });
+      await new Promise((r) => setTimeout(r, 700)); // brief "writing to graph" beat
+    } catch {
+      /* ignore */
+    }
+    setApproving(false);
     setImproved(true);
-    try { await fetch("/api/brain", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "apply_improvement", text: cxEval.improvement, concern: outcome?.concern }) }); } catch { /* ignore */ }
   };
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [thinking, setThinking] = useState<string | null>(null);
@@ -157,7 +165,7 @@ export default function Demo() {
     if (d.kind === "meta") setMeta({ title: d.title as string, account: d.account as string, format: d.format as string, agentName: d.agentName as string, brand: d.brand as string });
     else if (d.kind === "turn") setTurns((t) => (t.length && t[t.length - 1].who === d.who && t[t.length - 1].text === d.text ? t : [...t, d as unknown as Turn]));
     else if (d.kind === "sentiment") { setSentiment(d.value as string); setSentTrail((t) => [...t, d.value as string]); }
-    else if (d.kind === "cxeval") { setCxEval({ csat: d.csat as number, resolution: d.resolution as number, fcr: d.fcr as boolean, ces: d.ces as number, empathy: d.empathy as number, compliance: d.compliance as boolean, satisfied: d.satisfied as boolean, critique: d.critique as string, improvement: d.improvement as string }); setImproved(false); }
+    else if (d.kind === "cxeval") { setCxEval({ csat: d.csat as number, resolution: d.resolution as number, fcr: d.fcr as boolean, ces: d.ces as number, empathy: d.empathy as number, compliance: d.compliance as boolean, satisfied: d.satisfied as boolean, critique: d.critique as string, improvement: d.improvement as string }); setImproved(false); setApproving(false); }
     else if (d.kind === "notice") setAssists((a) => [...a, { cat: "notice", title: d.title as string, body: d.body as string }]);
     else if (d.kind === "assist") setAssists((a) => [...a, d as unknown as Assist]);
     else if (d.kind === "outcome") {
@@ -169,7 +177,7 @@ export default function Demo() {
   const stepOne = () => { const d = bufferRef.current.shift(); if (d) applyEvent(d); setBuffered(bufferRef.current.length); };
   const resetStage = () => {
     setTurns(sitRef.current.starter ? [{ who: "customer", text: sitRef.current.starter, sentiment: "negative" }] : []);
-    setAssists([]); setTrace([]); setGraph({ nodes: [], edges: [], trail: [] }); setOutcome(null); setSentiment("neutral"); setSentTrail([]); setCxEval(null); setImproved(false); setThinking(null); setPhase("");
+    setAssists([]); setTrace([]); setGraph({ nodes: [], edges: [], trail: [] }); setOutcome(null); setSentiment("neutral"); setSentTrail([]); setCxEval(null); setImproved(false); setApproving(false); setThinking(null); setPhase("");
   };
   const replay = () => { resetStage(); bufferRef.current = [...fullLogRef.current]; setBuffered(bufferRef.current.length); pausedRef.current = false; setPaused(false); };
   // Clean slate: wipe the whole live surface back to a fresh, pre-call state.
@@ -180,7 +188,7 @@ export default function Demo() {
     pausedRef.current = false; setPaused(false); setRunning(false);
     setMeta(null); setTurns([]); setAssists([]); setTrace([]);
     setGraph({ nodes: [], edges: [], trail: [] }); setOutcome(null);
-    setSentiment("neutral"); setSentTrail([]); setCxEval(null); setImproved(false); setThinking(null); setPhase(""); setSecs(0);
+    setSentiment("neutral"); setSentTrail([]); setCxEval(null); setImproved(false); setApproving(false); setThinking(null); setPhase(""); setSecs(0);
   };
 
   // paced reveal loop
@@ -217,7 +225,7 @@ export default function Demo() {
     setOutcome(null);
     setSentiment("neutral");
     setSentTrail([]);
-    setCxEval(null); setImproved(false);
+    setCxEval(null); setImproved(false); setApproving(false);
     setThinking(null);
     setPhase("");
     setSecs(0);
@@ -690,7 +698,9 @@ export default function Demo() {
                       <span className="text-fg">Effort <b>{cxEval.ces}</b></span>
                       <span className="text-fg">Empathy <b>{cxEval.empathy}</b></span>
                       {cxEval.improvement && (improved ? (
-                        <span className="text-good">✓ approved → added to context graph</span>
+                        <span className="flex items-center gap-1 text-good">✓ approved → written to context graph</span>
+                      ) : approving ? (
+                        <span className="flex items-center gap-1.5 text-accent">writing to context graph <Dots /></span>
                       ) : (
                         <span className="flex min-w-0 items-center gap-1.5">
                           <span className="truncate text-muted" title={cxEval.critique}>↻ {cxEval.improvement}</span>
