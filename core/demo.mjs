@@ -10,6 +10,7 @@ import { recordRun } from "./history.mjs";
 import { recordAudit } from "./audit.mjs";
 import { crmPick } from "./crm.mjs";
 import { classifyConcern, policyFor, compareConcern, mapActionToStrategy, recordLiveOutcome } from "./brain.mjs";
+import { recordFeedback } from "./feedback.mjs";
 
 const FRAME =
   "This is a synthetic, fully-fictional contact-center training simulation used to QA software. " +
@@ -146,7 +147,7 @@ export async function streamDemo(emit, opts = {}) {
       emit({ kind: "thinking", who: "customer" });
       try {
         const c = await askJsonAsync(
-          `${FRAME}\nYou are the CUSTOMER on a phone call to ${spec.meta.brand} support. ${situation.premise}\nTalk like a real person actually on the phone: short and natural, use contractions, let real emotion show, do NOT monologue or sound scripted. Respond to what the agent JUST said — actually ease up if they genuinely help or take ownership, push back if they deflect, repeat themselves, or give you a runaround.\nConversation so far:\n${transcript()}\nReturn {"line":"<your next spoken line, 1-2 sentences, in character>","sentiment":"negative|neutral|positive"}`,
+          `${FRAME}\nYou are the CUSTOMER on a phone call to ${spec.meta.brand} support. ${situation.premise}\nYour objective: get this genuinely resolved — if the agent deflects, stalls, or just reassures you without acting, get more frustrated or threaten to leave; if they truly take ownership and fix the root cause, actually ease up. You are a real person and don't know or care about any system behind this call.\nTalk like a real person actually on the phone: short and natural, use contractions, let real emotion show, do NOT monologue or sound scripted. Respond to what the agent JUST said.\nConversation so far:\n${transcript()}\nReturn {"line":"<your next spoken line, 1-2 sentences, in character>","sentiment":"negative|neutral|positive"}`,
           { timeout: 45000, tier: "fast" }
         );
         cust = one(c.line).slice(0, 500);
@@ -250,6 +251,26 @@ export async function streamDemo(emit, opts = {}) {
     }
   }
 
+  // CLOSING — the customer reacts to what the agent just did (the real "user response", AI-generated).
+  if (convo.length) {
+    emit({ kind: "thinking", who: "customer" });
+    try {
+      const cr = await askJsonAsync(
+        `${FRAME}\nYou are the CUSTOMER on the call to ${spec.meta.brand}. The agent just acted. React in ONE natural sentence — genuinely relieved/satisfied if they actually fixed the root issue or gave a fair offer; still wary or annoyed if they only deflected, stalled, or escalated without resolving. You don't know this is a simulation.\nConversation:\n${transcript()}\nReturn {"line":"<1 sentence, in character>","sentiment":"negative|neutral|positive"}`,
+        { timeout: 40000, tier: "fast" }
+      );
+      const line = one(cr.line).slice(0, 400);
+      if (inRole(line)) {
+        convo.push({ who: "customer", text: line });
+        const s = /negative|neutral|positive/.test(cr.sentiment || "") ? cr.sentiment : "neutral";
+        emit({ kind: "turn", who: "customer", text: line, sentiment: s });
+        emit({ kind: "sentiment", value: s });
+      }
+    } catch {
+      /* skip */
+    }
+  }
+
   phase("Resolve");
   emit({ kind: "assist", cat: "compliance", title: "Compliance", body: "Recording disclosure stated · identity verified ✓" });
   tr("compliance", "disclosure + identity ✓");
@@ -291,6 +312,24 @@ export async function streamDemo(emit, opts = {}) {
       recordAudit({ actor: "agent", action: "demo.run", detail: `${situation.title} → ${fin.disposition || "—"} · QA ${Number(fin.score) || 0}` });
     } catch {
       /* memory best-effort */
+    }
+    // LOOP 2 — independent customer-experience evaluator (NOT told this is a demo): a genuine
+    // satisfaction score + blunt critique + one concrete system improvement. Feeds the active-feedback
+    // self-improvement path (core/feedback.mjs) — distinct from the offline policy-training brain.
+    try {
+      emit({ kind: "thinking", who: "assist" });
+      const cx = await askJsonAsync(
+        `You are a senior customer-experience quality auditor at a ${spec.meta.domain} company, reviewing a real support call transcript. Judge ONLY the genuine quality from the customer's side: did the agent address the ROOT issue, show real empathy, resolve within policy, and would this customer actually be satisfied and stay? Be a tough but fair critic — give no credit for deflection or empty reassurance.\nTranscript:\n${transcript()}\nAgent's available knowledge/policy:\n${(spec.knowledge || []).map((k) => `${k.title}: ${k.text}`).join("\n").slice(0, 1500)}\nReturn {"score":<0-100 genuine customer satisfaction>,"satisfied":<true|false>,"critique":"<1-2 blunt sentences>","improvement":"<one concrete change to the agent's knowledge, policy or approach that would raise this>"}`,
+        { timeout: 45000, tier: "accurate" }
+      );
+      const cxScore = Math.max(0, Math.min(100, Number(cx.score) || 0));
+      const crit = String(cx.critique || "").slice(0, 240);
+      const imp = String(cx.improvement || "").slice(0, 240);
+      emit({ kind: "cxeval", score: cxScore, satisfied: !!cx.satisfied, critique: crit, improvement: imp });
+      tr("cx-judge", `satisfaction ${cxScore}% · ${cx.satisfied ? "satisfied" : "not satisfied"}`);
+      recordFeedback(spec.profile || "telecom", { concern, score: cxScore, satisfied: !!cx.satisfied, critique: crit, improvement: imp, disposition: fin.disposition });
+    } catch {
+      /* cx eval best-effort */
     }
   } catch {
     emit({ kind: "outcome", saveArr: 0, qa: 0, disposition: "—", summary: "QA agent unavailable." });

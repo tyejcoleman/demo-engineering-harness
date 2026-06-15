@@ -67,6 +67,8 @@ export default function Demo() {
   const [trace, setTrace] = useState<Trace[]>([]);
   const [graph, setGraph] = useState<Graph>({ nodes: [], edges: [], trail: [] });
   const [sentiment, setSentiment] = useState("neutral");
+  const [sentTrail, setSentTrail] = useState<string[]>([]);
+  const [cxEval, setCxEval] = useState<{ score: number; satisfied: boolean; critique: string; improvement: string } | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [thinking, setThinking] = useState<string | null>(null);
   const [phase, setPhase] = useState<string>("");
@@ -148,7 +150,8 @@ export default function Demo() {
     setThinking(null);
     if (d.kind === "meta") setMeta({ title: d.title as string, account: d.account as string, format: d.format as string, agentName: d.agentName as string, brand: d.brand as string });
     else if (d.kind === "turn") setTurns((t) => (t.length && t[t.length - 1].who === d.who && t[t.length - 1].text === d.text ? t : [...t, d as unknown as Turn]));
-    else if (d.kind === "sentiment") setSentiment(d.value as string);
+    else if (d.kind === "sentiment") { setSentiment(d.value as string); setSentTrail((t) => [...t, d.value as string]); }
+    else if (d.kind === "cxeval") setCxEval({ score: d.score as number, satisfied: d.satisfied as boolean, critique: d.critique as string, improvement: d.improvement as string });
     else if (d.kind === "notice") setAssists((a) => [...a, { cat: "notice", title: d.title as string, body: d.body as string }]);
     else if (d.kind === "assist") setAssists((a) => [...a, d as unknown as Assist]);
     else if (d.kind === "outcome") {
@@ -160,7 +163,7 @@ export default function Demo() {
   const stepOne = () => { const d = bufferRef.current.shift(); if (d) applyEvent(d); setBuffered(bufferRef.current.length); };
   const resetStage = () => {
     setTurns(sitRef.current.starter ? [{ who: "customer", text: sitRef.current.starter, sentiment: "negative" }] : []);
-    setAssists([]); setTrace([]); setGraph({ nodes: [], edges: [], trail: [] }); setOutcome(null); setSentiment("neutral"); setThinking(null); setPhase("");
+    setAssists([]); setTrace([]); setGraph({ nodes: [], edges: [], trail: [] }); setOutcome(null); setSentiment("neutral"); setSentTrail([]); setCxEval(null); setThinking(null); setPhase("");
   };
   const replay = () => { resetStage(); bufferRef.current = [...fullLogRef.current]; setBuffered(bufferRef.current.length); pausedRef.current = false; setPaused(false); };
   // Clean slate: wipe the whole live surface back to a fresh, pre-call state.
@@ -171,7 +174,7 @@ export default function Demo() {
     pausedRef.current = false; setPaused(false); setRunning(false);
     setMeta(null); setTurns([]); setAssists([]); setTrace([]);
     setGraph({ nodes: [], edges: [], trail: [] }); setOutcome(null);
-    setSentiment("neutral"); setThinking(null); setPhase(""); setSecs(0);
+    setSentiment("neutral"); setSentTrail([]); setCxEval(null); setThinking(null); setPhase(""); setSecs(0);
   };
 
   // paced reveal loop
@@ -207,6 +210,8 @@ export default function Demo() {
     setGraph({ nodes: [], edges: [], trail: [] });
     setOutcome(null);
     setSentiment("neutral");
+    setSentTrail([]);
+    setCxEval(null);
     setThinking(null);
     setPhase("");
     setSecs(0);
@@ -529,7 +534,16 @@ export default function Demo() {
               <section className={`card flex min-h-0 flex-col overflow-hidden lg:col-span-4${ring("conversation")}`}>
                 <div className="flex shrink-0 items-center justify-between border-b border-edge bg-panel2 px-4 py-2 label">
                   <span className="flex items-center gap-2">Live call <span className="chip !py-0 !text-[9px]"><span className="h-1 w-1 rounded-full bg-accent2" /> Gemini</span></span>
-                  <span className="flex items-center gap-1.5"><span className={`h-2 w-2 rounded-full ${sentColor} ${running ? "animate-pulse" : ""}`} /> {sentiment}</span>
+                  <span className="flex items-center gap-1.5">
+                    {sentTrail.length > 1 && (
+                      <span className="flex items-end gap-[2px] normal-case" title="customer sentiment over the call">
+                        {sentTrail.slice(-14).map((s, i) => (
+                          <span key={i} className={`w-[3px] rounded-sm ${s === "positive" ? "bg-good" : s === "negative" ? "bg-bad" : "bg-muted/60"}`} style={{ height: `${s === "positive" ? 12 : s === "negative" ? 4 : 8}px` }} />
+                        ))}
+                      </span>
+                    )}
+                    <span className={`h-2 w-2 rounded-full ${sentColor} ${running ? "animate-pulse" : ""}`} /> {sentiment}
+                  </span>
                 </div>
                 <div ref={convoRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
                   {turns.length === 0 && !running && <div className="text-sm text-muted">The customer opens the call here, live — pick a situation and press Start call.</div>}
@@ -657,8 +671,9 @@ export default function Demo() {
                   )}
                   {won && fleet > 0 && <span className="text-good" title="illustrative: this account's ARR × 100 comparable resolutions/yr">Fleet ROI ≈ <b>${fleet.toLocaleString()}</b>/yr</span>}
                   <span className="text-fg">QA <b>{outcome.qa}</b></span>
+                  {cxEval && <span title={`independent CX judge — ${cxEval.critique}`} className={cxEval.satisfied ? "text-good" : "text-warn"}>CX <b>{cxEval.score}%</b> {cxEval.satisfied ? "satisfied" : "unsatisfied"}</span>}
                   <span className="text-good">Compliance ✓</span>
-                  <span className="min-w-0 flex-1 truncate text-muted">{outcome.summary}</span>
+                  <span className="min-w-0 flex-1 truncate text-muted">{cxEval?.improvement ? `↻ ${cxEval.improvement}` : outcome.summary}</span>
                 </div>
               );
             })()}

@@ -84,6 +84,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
   const [stats, setStats] = useState<Stats | null>(null);
   const [audit, setAudit] = useState<{ id: string; at: string; actor: string; action: string; detail: string }[]>([]);
   const [brain, setBrain] = useState<Brain | null>(null);
+  const [feedback, setFeedback] = useState<{ count: number; avgScore: number; satisfiedPct: number; recent: { score: number; satisfied: boolean; concern?: string; critique?: string; improvement?: string }[]; improvements: string[] } | null>(null);
   const [training, setTraining] = useState(false);
   const [bPaused, setBPaused] = useState(false);
   const [bSpeed, setBSpeed] = useState(550);
@@ -122,6 +123,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
   };
   const loadAudit = async () => setAudit((await (await fetch("/api/audit", { cache: "no-store" })).json()).entries || []);
   const loadBrain = async () => setBrain(await (await fetch("/api/brain", { cache: "no-store" })).json());
+  const loadFeedback = async () => setFeedback(await (await fetch("/api/feedback", { cache: "no-store" })).json());
   // Train the brain — round events are buffered and revealed under a pause/speed control so the
   // learning curve builds visibly, exactly like the live demo. The training itself is real.
   const trainBrain = () => {
@@ -207,6 +209,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
     loadHistory();
     loadAudit();
     loadBrain();
+    loadFeedback();
     return () => {
       esRef.current?.close();
       brainEsRef.current?.close();
@@ -531,6 +534,27 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
                 )}
               </div>
             )}
+
+            {/* LOOP 2 — active feedback from live calls, judged by a blind CX evaluator */}
+            <div className="card-inset mt-4 border border-accent2/30 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="label">Active-feedback loop · from live calls</div>
+                {feedback && feedback.count > 0 ? (
+                  <span className="text-xs text-fg">CX <b className={feedback.avgScore >= 70 ? "text-good" : "text-warn"}>{feedback.avgScore}%</b> · {feedback.satisfiedPct}% satisfied · {feedback.count} calls</span>
+                ) : (
+                  <span className="text-[11px] text-muted">run live calls to populate</span>
+                )}
+              </div>
+              <p className="mt-1 text-[11px] text-muted">A 2nd self-improvement path: an <b className="text-fg">independent CX judge</b> — blind to the demo — scores every live call on genuine customer satisfaction and proposes concrete fixes to the agent&apos;s knowledge/policy. Learns from real interactions, not simulated training.</p>
+              {feedback && feedback.improvements.length > 0 && (
+                <div className="mt-2">
+                  <div className="label !text-[10px]">improvements proposed from real calls</div>
+                  <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[11px] text-fg/85">
+                    {feedback.improvements.slice(0, 4).map((x, i) => <li key={i}>{x}</li>)}
+                  </ul>
+                </div>
+              )}
+            </div>
 
             {/* ② Distill — extract the process, drop the seed data */}
             <div className="card-inset mt-4 p-3">
