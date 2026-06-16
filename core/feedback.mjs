@@ -51,3 +51,13 @@ export function getFeedback(profile) {
 export function clearFeedback(profile) {
   write(profile, { runs: [] });
 }
+
+// Wipe EVERY industry's active-feedback log (used at session start so it doesn't leak between visitors).
+export function resetAllFeedback() {
+  try {
+    const dir = path.join(process.cwd(), "data");
+    for (const f of fs.readdirSync(dir)) if (/^feedback-.*\.json$/.test(f)) fs.rmSync(path.join(dir, f), { force: true });
+  } catch {
+    /* nothing to clear */
+  }
+}

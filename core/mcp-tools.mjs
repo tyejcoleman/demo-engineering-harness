@@ -33,55 +33,55 @@ export const VISUAL_TARGETS = {
 };
 
 export const TOOLS = [
-  { name: "forge_produce", description: "Run the agent driver to produce a demo build/run stream (live Claude Code when configured, else deterministic fallback)." },
-  { name: "forge_improve", description: "Run the self-improvement loop to convergence; returns the staged trace." },
-  { name: "forge_copilot", description: "Run the Live Copilot demo; returns events + outcome." },
-  { name: "forge_readiness", description: "Live demo-readiness across demos." },
-  { name: "forge_critique", description: "Score an artifact against requirements; returns score + gaps." },
-  { name: "forge_visual_targets", description: "Routes to screenshot + the UI/UX rubric to judge them against, for a visual audit." },
-  { name: "forge_record_finding", description: "Record a visual/UX finding into the improvement queue (de-duped). Args: key, label, severity, route." },
-  { name: "forge_queue", description: "The current improvement queue, ranked by severity x frequency." },
-  { name: "forge_resolve", description: "Mark a finding resolved after fixing it. Args: key." },
-  { name: "forge_manifest", description: "Read the demo manifest (meta-config: brand, domain, scenarios, knowledge, scoring, mcp)." },
-  { name: "forge_configure", description: "Update the demo manifest. Args: a partial manifest object (e.g. {meta:{brand,domain,agentName,target}}). Deep-merged + persisted." },
-  { name: "forge_list_runs", description: "Demo memory — past demo runs with disposition + QA, plus aggregate stats." },
-  { name: "forge_record_run", description: "Record a completed demo run into memory. Args: {title, premise, disposition, qa, action}." },
-  { name: "forge_suggest_demo", description: "Intelligence layer — reason over demo memory + manifest to suggest NEW demos to run next. Args: {n}. Token-free (Claude Code)." },
-  { name: "forge_list_scenarios", description: "List the demo scenarios in the manifest (what the live demo offers)." },
-  { name: "forge_generate_scenario", description: "Generate a fresh realistic scenario for the current domain/brand and add it to the manifest. Token-free (Claude Code)." },
-  { name: "forge_add_scenario", description: "Add a scenario to the manifest. Args: {title, premise, starter}." },
-  { name: "forge_remove_scenario", description: "Remove a scenario from the manifest. Args: {id}." },
-  { name: "forge_seed_environment", description: "Generate a fresh isolated sandbox seeded with realistic accounts for the current domain/brand. Args: {n}. Token-free (Claude Code)." },
-  { name: "forge_list_profiles", description: "List the industry/company profiles (datasets) and the active one + available demo formats." },
-  { name: "forge_switch_profile", description: "Switch the whole demo dataset to an industry/company profile (brand, domain, KB, scenarios, accounts). Args: {id}." },
-  { name: "forge_set_format", description: "Select the POC form factor. Args: {format} — 'agent-assist' or 'ai-agent'." },
-  { name: "forge_audit", description: "The full platform audit trail — every config edit, env change, governed action, run, suggestion and self-evolution, attributed." },
-  { name: "forge_brain", description: "The self-evolving customer-service brain: the accumulated context graph (source of truth), learned policy, success history." },
-  { name: "forge_train_brain", description: "Run learning rounds: simulate cases, accumulate outcome evidence into the context graph, re-derive the policy. Args: {rounds}." },
-  { name: "forge_judge_brain", description: "Meta self-improvement: a judge LLM reviews the brain's context graph and proposes the optimized policy + algorithm improvements. Token-free (Claude Code)." },
-  { name: "forge_reset_brain", description: "Reset the brain (clear the accumulated context graph + policy)." },
-  { name: "forge_distill_brain", description: "Extract the learned decision process + algorithms into a portable artifact and DROP the seed data from the context graph (ready for live client data)." },
-  { name: "forge_validate_brain", description: "Run the distilled process on a fresh, unseen sample to prove it generalizes to new data; returns success vs a random baseline. Args: {samples}." },
+  { name: "demo_produce", description: "Run the agent driver to produce a demo build/run stream (live Claude Code when configured, else deterministic fallback)." },
+  { name: "demo_improve", description: "Run the self-improvement loop to convergence; returns the staged trace." },
+  { name: "demo_copilot", description: "Run the Live Copilot demo; returns events + outcome." },
+  { name: "demo_readiness", description: "Live demo-readiness across demos." },
+  { name: "demo_critique", description: "Score an artifact against requirements; returns score + gaps." },
+  { name: "demo_visual_targets", description: "Routes to screenshot + the UI/UX rubric to judge them against, for a visual audit." },
+  { name: "demo_record_finding", description: "Record a visual/UX finding into the improvement queue (de-duped). Args: key, label, severity, route." },
+  { name: "demo_queue", description: "The current improvement queue, ranked by severity x frequency." },
+  { name: "demo_resolve", description: "Mark a finding resolved after fixing it. Args: key." },
+  { name: "demo_manifest", description: "Read the demo manifest (meta-config: brand, domain, scenarios, knowledge, scoring, mcp)." },
+  { name: "demo_configure", description: "Update the demo manifest. Args: a partial manifest object (e.g. {meta:{brand,domain,agentName,target}}). Deep-merged + persisted." },
+  { name: "demo_list_runs", description: "Demo memory — past demo runs with disposition + QA, plus aggregate stats." },
+  { name: "demo_record_run", description: "Record a completed demo run into memory. Args: {title, premise, disposition, qa, action}." },
+  { name: "demo_suggest_demo", description: "Intelligence layer — reason over demo memory + manifest to suggest NEW demos to run next. Args: {n}. Token-free (Claude Code)." },
+  { name: "demo_list_scenarios", description: "List the demo scenarios in the manifest (what the live demo offers)." },
+  { name: "demo_generate_scenario", description: "Generate a fresh realistic scenario for the current domain/brand and add it to the manifest. Token-free (Claude Code)." },
+  { name: "demo_add_scenario", description: "Add a scenario to the manifest. Args: {title, premise, starter}." },
+  { name: "demo_remove_scenario", description: "Remove a scenario from the manifest. Args: {id}." },
+  { name: "demo_seed_environment", description: "Generate a fresh isolated sandbox seeded with realistic accounts for the current domain/brand. Args: {n}. Token-free (Claude Code)." },
+  { name: "demo_list_profiles", description: "List the industry/company profiles (datasets) and the active one + available demo formats." },
+  { name: "demo_switch_profile", description: "Switch the whole demo dataset to an industry/company profile (brand, domain, KB, scenarios, accounts). Args: {id}." },
+  { name: "demo_set_format", description: "Select the POC form factor. Args: {format} — 'agent-assist' or 'ai-agent'." },
+  { name: "demo_audit", description: "The full platform audit trail — every config edit, env change, governed action, run, suggestion and self-evolution, attributed." },
+  { name: "demo_brain", description: "The self-evolving customer-service brain: the accumulated context graph (source of truth), learned policy, success history." },
+  { name: "demo_train_brain", description: "Run learning rounds: simulate cases, accumulate outcome evidence into the context graph, re-derive the policy. Args: {rounds}." },
+  { name: "demo_judge_brain", description: "Meta self-improvement: a judge LLM reviews the brain's context graph and proposes the optimized policy + algorithm improvements. Token-free (Claude Code)." },
+  { name: "demo_reset_brain", description: "Reset the brain (clear the accumulated context graph + policy)." },
+  { name: "demo_distill_brain", description: "Extract the learned decision process + algorithms into a portable artifact and DROP the seed data from the context graph (ready for live client data)." },
+  { name: "demo_validate_brain", description: "Run the distilled process on a fresh, unseen sample to prove it generalizes to new data; returns success vs a random baseline. Args: {samples}." },
 ];
 
 export async function callTool(name, args = {}) {
   switch (name) {
-    case "forge_manifest":
+    case "demo_manifest":
       return loadSpec();
-    case "forge_configure":
+    case "demo_configure":
       recordAudit({ actor: "claude-code", action: "config.update", detail: Object.keys((args && args.meta) || args || {}).join(", ") });
       return saveSpec(args || {});
-    case "forge_list_runs":
+    case "demo_list_runs":
       return { runs: listRuns(args.limit || 50), stats: runStats() };
-    case "forge_record_run":
+    case "demo_record_run":
       recordAudit({ actor: "claude-code", action: "demo.run", detail: `${args.title || "run"} → ${args.disposition || "—"}` });
       return recordRun(args || {});
-    case "forge_suggest_demo":
+    case "demo_suggest_demo":
       recordAudit({ actor: "claude-code", action: "suggest", detail: `requested ${args.n || 3} demo suggestions` });
       return { suggestions: await suggestDemos(args.n || 3) };
-    case "forge_list_scenarios":
+    case "demo_list_scenarios":
       return { scenarios: loadSpec().scenarios || [] };
-    case "forge_generate_scenario": {
+    case "demo_generate_scenario": {
       const s = await generateScenario();
       if (s) {
         addScenario(s);
@@ -89,15 +89,15 @@ export async function callTool(name, args = {}) {
       }
       return { scenario: s, scenarios: loadSpec().scenarios || [] };
     }
-    case "forge_add_scenario": {
+    case "demo_add_scenario": {
       const s = addScenario(args || {});
       recordAudit({ actor: "claude-code", action: "scenario.add", detail: s.title });
       return { scenario: s, scenarios: loadSpec().scenarios || [] };
     }
-    case "forge_remove_scenario":
+    case "demo_remove_scenario":
       recordAudit({ actor: "claude-code", action: "scenario.remove", detail: String(args.id || "") });
       return { scenarios: removeScenario(args.id) };
-    case "forge_seed_environment": {
+    case "demo_seed_environment": {
       const accounts = await seedAccounts(args.n || 3);
       const id = "env-" + Math.random().toString(36).slice(2, 6);
       const environment = { id, label: "Claude-generated · " + id, baseline: false, accounts };
@@ -105,56 +105,56 @@ export async function callTool(name, args = {}) {
       recordAudit({ actor: "claude-code", action: "env.generate", detail: `${id} · ${accounts.length} accounts` });
       return environment;
     }
-    case "forge_list_profiles":
+    case "demo_list_profiles":
       return { profiles: PROFILES.map((p) => ({ id: p.id, label: p.label, brand: p.meta.brand, domain: p.meta.domain })), formats: FORMATS, active: loadSpec().profile, format: loadSpec().format };
-    case "forge_switch_profile": {
+    case "demo_switch_profile": {
       const spec = applyProfile(args.id);
       recordAudit({ actor: "claude-code", action: "profile.switch", detail: `${spec.profile} · ${spec.meta.brand}` });
       return { profile: spec.profile, brand: spec.meta.brand, domain: spec.meta.domain, scenarios: spec.scenarios };
     }
-    case "forge_set_format": {
+    case "demo_set_format": {
       const spec = setFormat(args.format);
       recordAudit({ actor: "claude-code", action: "format.set", detail: spec.format });
       return { format: spec.format };
     }
-    case "forge_audit":
+    case "demo_audit":
       return { entries: listAudit(args.limit || 80) };
-    case "forge_brain":
+    case "demo_brain":
       return getBrain();
-    case "forge_train_brain":
+    case "demo_train_brain":
       recordAudit({ actor: "claude-code", action: "brain.train", detail: `${args.rounds || 8} rounds` });
       return trainRounds(args.rounds || 8, args.casesPerRound || 40);
-    case "forge_judge_brain": {
+    case "demo_judge_brain": {
       const j = await judgeBrain();
       recordAudit({ actor: "claude-code", action: "brain.judge", detail: `success ${j.before}% → ${j.after}%` });
       return j;
     }
-    case "forge_reset_brain":
+    case "demo_reset_brain":
       recordAudit({ actor: "claude-code", action: "brain.reset", detail: "context graph + policy cleared" });
       return resetBrain();
-    case "forge_distill_brain": {
+    case "demo_distill_brain": {
       const artifact = distill();
       recordAudit({ actor: "claude-code", action: "brain.distill", detail: `v${artifact.version} · process extracted, seed data dropped` });
       return artifact;
     }
-    case "forge_validate_brain": {
+    case "demo_validate_brain": {
       const result = validate(args.samples || 500);
       recordAudit({ actor: "claude-code", action: "brain.validate", detail: `${result.success ?? 0}% vs ${result.baseline ?? 0}% baseline on unseen data` });
       return result;
     }
-    case "forge_produce":
+    case "demo_produce":
       return { events: runDriver({ name: args.name || "demo" }) };
-    case "forge_improve":
+    case "demo_improve":
       return runImprovementLoop();
-    case "forge_copilot":
+    case "demo_copilot":
       return runCopilot();
-    case "forge_readiness":
+    case "demo_readiness":
       return readiness();
-    case "forge_critique":
+    case "demo_critique":
       return critique(args.requirements || [], args.present || {});
-    case "forge_visual_targets":
+    case "demo_visual_targets":
       return VISUAL_TARGETS;
-    case "forge_record_finding": {
+    case "demo_record_finding": {
       const added = enqueue(sessionQueue, {
         key: args.key || `finding-${sessionQueue.items.length + 1}`,
         label: args.label || "(visual finding)",
@@ -164,9 +164,9 @@ export async function callTool(name, args = {}) {
       });
       return { added, queue: ranked(sessionQueue) };
     }
-    case "forge_queue":
+    case "demo_queue":
       return { queue: ranked(sessionQueue) };
-    case "forge_resolve":
+    case "demo_resolve":
       return { resolved: resolve(sessionQueue, args.key), queue: ranked(sessionQueue) };
     default:
       throw new Error(`unknown tool: ${name}`);

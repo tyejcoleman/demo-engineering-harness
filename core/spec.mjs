@@ -31,7 +31,7 @@ export const DEFAULT_SPEC = {
     rubric: ["grounded citation (verbatim KB)", "governed action + audit", "post-call analytics", "coherent event ordering", "compliance check"],
   },
   mcp: [
-    { id: "claude-code", kind: "generator", name: "Claude Code", status: "wired", tools: ["forge_manifest", "forge_configure", "forge_list_profiles", "forge_switch_profile", "forge_set_format", "forge_generate_scenario", "forge_seed_environment", "forge_suggest_demo", "forge_improve", "forge_audit"] },
+    { id: "claude-code", kind: "generator", name: "Claude Code", status: "wired", tools: ["demo_manifest", "demo_configure", "demo_list_profiles", "demo_switch_profile", "demo_set_format", "demo_generate_scenario", "demo_seed_environment", "demo_suggest_demo", "demo_improve", "demo_audit"] },
     { id: "crm", kind: "data", name: "CRM (crm.read / issueCredit)", status: "seeded" },
     { id: "kb", kind: "data", name: "Knowledge base (retrieve)", status: "seeded" },
   ],

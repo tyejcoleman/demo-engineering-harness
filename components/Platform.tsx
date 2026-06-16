@@ -43,23 +43,23 @@ type Brain = {
 };
 
 // Copy-paste onboarding for ANY developer's Claude Code to connect over MCP (token-free).
-const ONBOARDING = `# Connect your Claude Code to the Forge demo platform (MCP)
+const ONBOARDING = `# Connect your Claude Code to the demo platform (MCP)
 
-# 1) Register the harness MCP server (from the project root):
-claude mcp add forge -- node mcp/server.mjs
+# 1) Register the MCP server (from the project root):
+claude mcp add demo -- node mcp/server.mjs
 #    …or add to .mcp.json:
-#    { "mcpServers": { "forge": { "command": "node", "args": ["mcp/server.mjs"] } } }
+#    { "mcpServers": { "demo": { "command": "node", "args": ["mcp/server.mjs"] } } }
 
 # 2) Paste this to your Claude Code — one MCP, the whole platform:
-You're connected to the "forge" demo platform over MCP. You can manage everything from here:
-• Config: forge_manifest (read) / forge_configure (edit brand, domain, agent, target)
-• Profiles & formats: forge_list_profiles / forge_switch_profile (swap the whole industry dataset) / forge_set_format (agent-assist | ai-agent)
-• Scenarios: forge_list_scenarios / forge_generate_scenario / forge_add_scenario / forge_remove_scenario
-• Data: forge_seed_environment (mint realistic accounts for the domain)
-• Demos & memory: forge_list_runs / forge_record_run / forge_suggest_demo
-• Self-evolution: forge_critique / forge_improve / forge_readiness (drive until readiness hits target)
-• Audit: forge_audit (everything you change is attributed and logged)
-Start by reading forge_manifest and forge_list_runs, then propose and run the next best demo.`;
+You're connected to the "demo" platform over MCP. You can manage everything from here:
+• Config: demo_manifest (read) / demo_configure (edit brand, domain, agent, target)
+• Profiles & formats: demo_list_profiles / demo_switch_profile (swap the whole industry dataset) / demo_set_format (agent-assist | ai-agent)
+• Scenarios: demo_list_scenarios / demo_generate_scenario / demo_add_scenario / demo_remove_scenario
+• Data: demo_seed_environment (mint realistic accounts for the domain)
+• Demos & memory: demo_list_runs / demo_record_run / demo_suggest_demo
+• Self-evolution: demo_critique / demo_improve / demo_readiness (drive until readiness hits target)
+• Audit: demo_audit (everything you change is attributed and logged)
+Start by reading demo_manifest and demo_list_runs, then propose and run the next best demo.`;
 const dispTone = (d: string) => (d === "Saved" || d === "Resolved" ? "text-good border-good/40 bg-good/5" : d === "Lost" ? "text-bad border-bad/40 bg-bad/5" : "text-warn border-warn/40 bg-warn/5");
 
 function EngineBadge({ kind }: { kind: "claude" | "gemini" }) {
@@ -662,12 +662,12 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
             <p className="mt-1 text-[11px] text-muted">Connect any Claude Code (left) and drive the whole platform with these tools — manage data &amp; scenarios, run demos, and run the self-learning loop. Everything is attributed in the audit trail below.</p>
             <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
               {[
-                ["Manage the demo", "forge_manifest · forge_configure"],
-                ["Switch industry / format", "forge_switch_profile · forge_set_format"],
-                ["Manage data (CRM)", "forge_seed_environment · forge_list_runs"],
-                ["Create scenarios", "forge_generate_scenario · forge_add_scenario"],
-                ["Self-learning over the graph", "forge_train_brain · forge_judge_brain · forge_distill_brain"],
-                ["Improve / verify", "forge_critique · forge_improve · forge_readiness · forge_validate_brain"],
+                ["Manage the demo", "demo_manifest · demo_configure"],
+                ["Switch industry / format", "demo_switch_profile · demo_set_format"],
+                ["Manage data (CRM)", "demo_seed_environment · demo_list_runs"],
+                ["Create scenarios", "demo_generate_scenario · demo_add_scenario"],
+                ["Self-learning over the graph", "demo_train_brain · demo_judge_brain · demo_distill_brain"],
+                ["Improve / verify", "demo_critique · demo_improve · demo_readiness · demo_validate_brain"],
               ].map(([t, tools]) => (
                 <div key={t} className="card-inset p-2.5">
                   <div className="text-xs font-medium text-fg">{t}</div>
