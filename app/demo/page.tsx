@@ -470,8 +470,8 @@ export default function Demo() {
             {/* controls */}
             <div className="shrink-0">
               {/* Start call + POC format toggle */}
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5">
+              <div className="mb-2 flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                <div className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto">
                   {(running || buffered > 0) && (
                     <>
                       <button onClick={togglePause} className="btn-ghost !px-2.5 !py-1 !text-xs">{paused ? "Play" : "Pause"}</button>
@@ -486,8 +486,8 @@ export default function Demo() {
                   <button onClick={() => setSafeMode((s) => !s)} disabled={running} title="Demo-day insurance: replay the last recorded run with no network/LLM" className={`btn-ghost !px-2.5 !py-1 !text-xs disabled:opacity-40 ${safeMode ? "!border-good !text-good" : ""}`}>{safeMode ? "● Safe mode" : "Safe mode"}{safeMode && !hasRecording ? " (no rec)" : ""}</button>
                   {buffered > 0 && <span className="text-[10px] text-accent">{buffered} queued</span>}
                 </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={start} disabled={running || gen} className="btn-primary">{running ? "● Live" : outcome ? "Run again" : "Start call"}</button>
+                <div className="flex w-full items-center gap-2 sm:w-auto">
+                  <button onClick={start} disabled={running || gen} className="btn-primary w-full sm:w-auto">{running ? "● Live" : outcome ? "Run again" : "Start call"}</button>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -496,7 +496,7 @@ export default function Demo() {
                   value={situation.id}
                   onChange={(e) => { const s = scenarios.find((x) => x.id === e.target.value); if (s) pick(s); }}
                   disabled={running}
-                  className="rounded-lg border border-edge bg-panel px-2.5 py-1 text-xs text-fg outline-none transition focus:border-accent disabled:opacity-50"
+                  className="min-w-0 flex-1 rounded-lg border border-edge bg-panel px-2.5 py-1 text-xs text-fg outline-none transition focus:border-accent disabled:opacity-50 sm:flex-none"
                 >
                   {scenarios.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
                   {situation.id === "generated" && <option value="generated">{situation.title}</option>}
