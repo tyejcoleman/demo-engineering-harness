@@ -509,9 +509,9 @@ export default function Demo() {
                 </div>
               </div>
               {situation.id === "generated" && situation.rationale && (
-                <div className="mt-1.5 flex items-start gap-1.5 text-[11px] leading-snug text-accent">
-                  <Icon name="spark" className="mt-0.5 h-3 w-3 shrink-0" />
-                  <span><b className="font-medium">AI chose this scenario · </b>{situation.rationale}</span>
+                <div className="mt-2 flex items-start gap-2 rounded-lg border border-accent/20 bg-accent/[0.05] px-3 py-2 text-[11px] leading-relaxed">
+                  <Icon name="spark" className="mt-0.5 h-3 w-3 shrink-0 text-accent" />
+                  <span className="text-fg/80"><b className="font-medium text-accent">AI chose this scenario · </b>{situation.rationale}</span>
                 </div>
               )}
               <div className="mt-2 hidden flex-wrap items-center gap-1.5 sm:flex">
