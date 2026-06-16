@@ -450,7 +450,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
       {/* ── BRAIN (self-evolving context graph + judge LLM) ── */}
       {sub === "learn" && (
         <div className="mt-3 grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-12">
-          <section className="card flex h-[60vh] min-h-0 flex-col overflow-hidden lg:h-auto lg:col-span-6">
+          <section className="card flex h-[60dvh] min-h-0 flex-col overflow-hidden lg:h-auto lg:col-span-6">
             <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-0.5 border-b border-edge bg-panel2 px-4 py-2 label">
               <span>Brain · context graph = source of truth</span>
               <span className="text-muted">{brain?.graph?.nodes?.length || 0} nodes · success {brain?.success || 0}%</span>

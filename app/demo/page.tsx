@@ -432,7 +432,7 @@ export default function Demo() {
             </div>
             <div className="flex flex-wrap items-center gap-2 text-[11px]">
               <span className="text-[10px] uppercase tracking-wider text-muted">Industry</span>
-              <select value={activeProfile} onChange={(e) => switchProfile(e.target.value)} className="rounded-lg border border-edge bg-panel px-2.5 py-1 text-xs font-medium text-fg outline-none transition focus:border-accent">
+              <select value={activeProfile} onChange={(e) => switchProfile(e.target.value)} className="min-w-[7rem] rounded-lg border border-edge bg-panel px-2.5 py-1 text-xs font-medium text-fg outline-none transition focus:border-accent">
                 {profiles.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
               </select>
             </div>
@@ -491,21 +491,25 @@ export default function Demo() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[10px] uppercase tracking-wider text-muted">Scenario</span>
-                <select
-                  value={situation.id}
-                  onChange={(e) => { const s = scenarios.find((x) => x.id === e.target.value); if (s) pick(s); }}
-                  disabled={running}
-                  className="min-w-0 flex-1 rounded-lg border border-edge bg-panel px-2.5 py-1 text-xs text-fg outline-none transition focus:border-accent disabled:opacity-50 sm:flex-none"
-                >
-                  {scenarios.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
-                  {situation.id === "generated" && <option value="generated">{situation.title}</option>}
-                </select>
-                <button onClick={generate} disabled={running || gen} className="inline-flex items-center gap-1 rounded-full border border-accent2/40 bg-accent2/5 px-3 py-1 text-xs font-medium text-accent2 transition hover:border-accent2 disabled:opacity-50">
-                  {gen ? "generating…" : <><Icon name="spark" className="h-3 w-3" /> Generate</>}
-                </button>
-                <div className="ml-auto flex items-center gap-3">
-                  <span className="font-mono text-xs text-muted">{mm}:{ss}</span>
+                {/* On phones: scenario gets its own full-width row; Generate + timer drop below.
+                    On sm+ : sm:contents flattens the wrappers so the original inline row is unchanged. */}
+                <div className="flex w-full min-w-0 items-center gap-2 sm:contents">
+                  <span className="shrink-0 text-[10px] uppercase tracking-wider text-muted">Scenario</span>
+                  <select
+                    value={situation.id}
+                    onChange={(e) => { const s = scenarios.find((x) => x.id === e.target.value); if (s) pick(s); }}
+                    disabled={running}
+                    className="min-w-0 flex-1 rounded-lg border border-edge bg-panel px-2.5 py-1 text-xs text-fg outline-none transition focus:border-accent disabled:opacity-50 sm:flex-none"
+                  >
+                    {scenarios.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
+                    {situation.id === "generated" && <option value="generated">{situation.title}</option>}
+                  </select>
+                </div>
+                <div className="flex w-full items-center justify-between gap-2 sm:contents">
+                  <button onClick={generate} disabled={running || gen} className="inline-flex shrink-0 items-center gap-1 rounded-full border border-accent2/40 bg-accent2/5 px-3 py-1 text-xs font-medium text-accent2 transition hover:border-accent2 disabled:opacity-50">
+                    {gen ? "generating…" : <><Icon name="spark" className="h-3 w-3" /> Generate</>}
+                  </button>
+                  <span className="font-mono text-xs text-muted sm:ml-auto">{mm}:{ss}</span>
                 </div>
               </div>
               {situation.id === "generated" && situation.rationale && (
@@ -537,7 +541,7 @@ export default function Demo() {
             {/* stage — fills remaining height */}
             <div className="mt-2 grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-12">
               {/* LIVE CALL */}
-              <section className={`card flex h-[60vh] min-h-0 flex-col overflow-hidden lg:h-auto lg:col-span-4${ring("conversation")}`}>
+              <section className={`card flex h-[60dvh] min-h-0 flex-col overflow-hidden lg:h-auto lg:col-span-4${ring("conversation")}`}>
                 <div className="flex shrink-0 items-center justify-between border-b border-edge bg-panel2 px-4 py-2 label">
                   <span className="flex items-center gap-2">Live call <span className="chip !py-0 !text-[9px]"><span className="h-1 w-1 rounded-full bg-accent2" /> Gemini</span></span>
                   <span className="flex items-center gap-1.5">
@@ -571,7 +575,7 @@ export default function Demo() {
               </section>
 
               {/* AI REASONING */}
-              <section className={`card flex h-[60vh] min-h-0 flex-col overflow-hidden lg:h-auto lg:col-span-3${ring("assist")}`}>
+              <section className={`card flex h-[60dvh] min-h-0 flex-col overflow-hidden lg:h-auto lg:col-span-3${ring("assist")}`}>
                 <div className="flex shrink-0 items-center justify-between border-b border-edge bg-panel2 px-4 py-2 label">
                   <span>AI reasoning · real-time</span>
                   {(running || assists.length > 0) && (
@@ -645,7 +649,7 @@ export default function Demo() {
               </section>
 
               {/* CONTEXT GRAPH */}
-              <section className={`card flex h-[68vh] min-h-0 flex-col overflow-hidden lg:h-auto lg:col-span-5${ring("graph")}`}>
+              <section className={`card flex h-[68dvh] min-h-0 flex-col overflow-hidden lg:h-auto lg:col-span-5${ring("graph")}`}>
                 <div className="flex shrink-0 items-center justify-between border-b border-edge bg-panel2 px-4 py-2 label">
                   <span>Context graph · live reasoning</span>
                   <span className="text-muted">{graph.nodes.length} nodes · {count("strategy") + count("chosen")} strategies</span>
