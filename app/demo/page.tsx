@@ -397,7 +397,7 @@ export default function Demo() {
   const coherence = Math.round((100 * cohSignals.filter((s) => s.on).length) / cohSignals.length);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <div className="flex min-h-[100dvh] flex-col lg:h-screen lg:overflow-hidden">
       {about && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/20 p-6 pt-20" onClick={() => setAbout(false)}>
           <div className="card max-w-lg p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
@@ -423,7 +423,7 @@ export default function Demo() {
 
       {/* ── HEADER (compact, no logo): brand + live platform stats + tabs ── */}
       <header className="shrink-0 border-b border-edge bg-panel/85 backdrop-blur">
-        <div className="mx-auto w-full max-w-[1600px] px-6">
+        <div className="mx-auto w-full max-w-[1600px] px-3 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-2.5">
             <div className="flex items-baseline gap-2">
               <span className="text-base font-semibold tracking-tight text-fg">Demo Engineering Harness</span>
@@ -456,10 +456,10 @@ export default function Demo() {
       </header>
 
       {/* ── BODY (fills the viewport; nothing scrolls the page) ── */}
-      <div className="mx-auto flex w-full min-h-0 max-w-[1600px] flex-1 flex-col overflow-hidden px-6 py-3">
+      <div className="mx-auto flex w-full min-h-0 max-w-[1600px] flex-1 flex-col px-3 py-3 sm:px-6 lg:overflow-hidden">
         {/* platform surfaces scroll internally */}
         {view !== "demo" && (
-          <div className="min-h-0 flex-1 overflow-hidden">
+          <div className="min-h-0 flex-1 lg:overflow-hidden">
             <Platform key={activeProfile} tab={view} onLoad={(s) => { pick({ id: "generated", title: s.title, premise: s.premise, starter: s.starter, rationale: s.rationale }); setView("demo"); }} />
           </div>
         )}
@@ -537,7 +537,7 @@ export default function Demo() {
             {/* stage — fills remaining height */}
             <div className="mt-2 grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-12">
               {/* LIVE CALL */}
-              <section className={`card flex min-h-0 flex-col overflow-hidden lg:col-span-4${ring("conversation")}`}>
+              <section className={`card flex h-[60vh] min-h-0 flex-col overflow-hidden lg:h-auto lg:col-span-4${ring("conversation")}`}>
                 <div className="flex shrink-0 items-center justify-between border-b border-edge bg-panel2 px-4 py-2 label">
                   <span className="flex items-center gap-2">Live call <span className="chip !py-0 !text-[9px]"><span className="h-1 w-1 rounded-full bg-accent2" /> Gemini</span></span>
                   <span className="flex items-center gap-1.5">
@@ -571,7 +571,7 @@ export default function Demo() {
               </section>
 
               {/* AI REASONING */}
-              <section className={`card flex min-h-0 flex-col overflow-hidden lg:col-span-3${ring("assist")}`}>
+              <section className={`card flex h-[60vh] min-h-0 flex-col overflow-hidden lg:h-auto lg:col-span-3${ring("assist")}`}>
                 <div className="flex shrink-0 items-center justify-between border-b border-edge bg-panel2 px-4 py-2 label">
                   <span>AI reasoning · real-time</span>
                   {(running || assists.length > 0) && (
@@ -645,7 +645,7 @@ export default function Demo() {
               </section>
 
               {/* CONTEXT GRAPH */}
-              <section className={`card flex min-h-0 flex-col overflow-hidden lg:col-span-5${ring("graph")}`}>
+              <section className={`card flex h-[68vh] min-h-0 flex-col overflow-hidden lg:h-auto lg:col-span-5${ring("graph")}`}>
                 <div className="flex shrink-0 items-center justify-between border-b border-edge bg-panel2 px-4 py-2 label">
                   <span>Context graph · live reasoning</span>
                   <span className="text-muted">{graph.nodes.length} nodes · {count("strategy") + count("chosen")} strategies</span>

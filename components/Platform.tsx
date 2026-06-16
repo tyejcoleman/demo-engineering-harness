@@ -276,7 +276,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
   const tools = harness?.mcp?.find((m) => m.id === "claude-code")?.tools || [];
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex min-h-0 flex-col lg:h-full">
       {/* sub-tabs (hidden when the page drives the tab) */}
       {!tab && (
         <div className="flex flex-wrap gap-2">
@@ -396,8 +396,8 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
                   <span className="hidden w-20 shrink-0 truncate text-muted sm:inline">{a.plan}</span>
                   <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] ${a.status === "at_risk" ? "border-bad/40 text-bad" : a.status === "vip" ? "border-accent/40 text-accent" : "border-edge text-muted"}`}>{a.status === "at_risk" ? "at-risk" : a.status}</span>
                   <span className="ml-auto shrink-0 tabular-nums text-muted">${a.mrr}/mo</span>
-                  <span className="shrink-0 tabular-nums text-muted">LTV ${(a.ltv / 1000).toFixed(1)}k</span>
-                  <span className={`shrink-0 tabular-nums ${a.riskScore >= 55 ? "text-bad" : "text-muted"}`}>r{a.riskScore}</span>
+                  <span className="hidden shrink-0 tabular-nums text-muted sm:inline">LTV ${(a.ltv / 1000).toFixed(1)}k</span>
+                  <span className={`hidden shrink-0 tabular-nums sm:inline ${a.riskScore >= 55 ? "text-bad" : "text-muted"}`}>r{a.riskScore}</span>
                 </div>
               ))}
             </div>
@@ -450,7 +450,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
       {/* ── BRAIN (self-evolving context graph + judge LLM) ── */}
       {sub === "learn" && (
         <div className="mt-3 grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-12">
-          <section className="card flex min-h-0 flex-col overflow-hidden lg:col-span-6">
+          <section className="card flex h-[60vh] min-h-0 flex-col overflow-hidden lg:h-auto lg:col-span-6">
             <div className="flex shrink-0 items-center justify-between border-b border-edge bg-panel2 px-4 py-2 label">
               <span>Brain · context graph = source of truth</span>
               <span className="text-muted">{brain?.graph?.nodes?.length || 0} nodes · success {brain?.success || 0}%</span>
