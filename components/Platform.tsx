@@ -349,11 +349,11 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
       {sub === "crm" && env && (
         <div className="mt-3 grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-12">
           <section className="card flex min-h-0 flex-col overflow-y-auto p-5 lg:col-span-7">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
               <div className="label">Sandbox environment</div>
               <span className={`rounded-full px-2.5 py-0.5 text-[11px] ${env.baseline ? "border border-edge bg-panel2 text-muted" : "border border-good/40 bg-good/5 text-good"}`}>{env.label}</span>
             </div>
-            <div className="mt-4 grid grid-cols-3 gap-3">
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
               {env.sources.map((s) => (
                 <div key={s.name} className="card-inset p-3">
                   <div className="flex items-center gap-1.5 text-xs font-medium text-fg"><span className={`h-2 w-2 rounded-full ${s.status === "wired" ? "bg-accent" : "bg-accent2"}`} /> {s.name}</div>
@@ -376,7 +376,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
             ) : null}
           </section>
           <section className="card flex min-h-0 flex-col p-5 lg:col-span-5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
               <div className="label">Simulated CRM · source of truth</div>
               <span className="text-[10px] text-muted">prod: Salesforce / Zendesk / contact-center</span>
             </div>
@@ -451,7 +451,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
       {sub === "learn" && (
         <div className="mt-3 grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-12">
           <section className="card flex h-[60vh] min-h-0 flex-col overflow-hidden lg:h-auto lg:col-span-6">
-            <div className="flex shrink-0 items-center justify-between border-b border-edge bg-panel2 px-4 py-2 label">
+            <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-0.5 border-b border-edge bg-panel2 px-4 py-2 label">
               <span>Brain · context graph = source of truth</span>
               <span className="text-muted">{brain?.graph?.nodes?.length || 0} nodes · success {brain?.success || 0}%</span>
             </div>
@@ -464,7 +464,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
             </div>
           </section>
           <section className="card flex min-h-0 flex-col overflow-y-auto p-5 lg:col-span-6">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
               <div className="label">Meta self-improvement · graph → judge LLM</div>
               <div className="flex flex-wrap items-center gap-2">
                 {training && (
@@ -486,7 +486,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
             </div>
 
             <div className="mt-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
                 <div className="label">Customer-success rate · learning curve</div>
                 {(() => {
                   const h = liveCurve.length ? liveCurve : brain?.history || [];
@@ -532,7 +532,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
 
             {brain?.judge && (
               <div className="card-inset mt-4 p-3">
-                <div className="flex items-center justify-between"><div className="label">Judge LLM · meta-review</div>{brain.judge.after > brain.judge.before ? <span className="text-xs font-medium text-good">corrected: trained {brain.judge.before}% → optimized {brain.judge.after}%</span> : <span className="text-xs text-muted">✓ validated · already optimal at {brain.judge.after}%</span>}</div>
+                <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5"><div className="label">Judge LLM · meta-review</div>{brain.judge.after > brain.judge.before ? <span className="text-xs font-medium text-good">corrected: trained {brain.judge.before}% → optimized {brain.judge.after}%</span> : <span className="text-xs text-muted">✓ validated · already optimal at {brain.judge.after}%</span>}</div>
                 <p className="mt-1.5 text-xs leading-relaxed text-fg/85">{brain.judge.rationale}</p>
                 {brain.judge.changed && brain.judge.changed.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
@@ -551,7 +551,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
 
             {/* LOOP 2 — active feedback from live calls, judged by a blind CX evaluator */}
             <div className="card-inset mt-4 border border-accent2/30 p-3">
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
                 <div className="label">Active-feedback loop · from live calls</div>
                 {feedback && feedback.count > 0 ? (
                   <span className="text-xs text-fg">CX <b className={feedback.avgScore >= 70 ? "text-good" : "text-warn"}>{feedback.avgScore}%</b> · {feedback.satisfiedPct}% satisfied · {feedback.count} calls</span>
@@ -583,7 +583,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
 
             {/* ② Distill — extract the process, drop the seed data */}
             <div className="card-inset mt-4 p-3">
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
                 <div className="label">② Distill → portable process (drop seed data)</div>
                 <button onClick={distillBrain} disabled={!brain?.history?.length} className="rounded-md border border-accent/40 bg-accent/5 px-2.5 py-1 text-[11px] font-medium text-accent transition hover:bg-accent/10 disabled:opacity-40">Distill</button>
               </div>
@@ -603,7 +603,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
 
             {/* ③ Test on new data — generalization proof */}
             <div className="card-inset mt-3 p-3">
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
                 <div className="label">③ Test on new data</div>
                 <button onClick={validateBrain} disabled={!brain?.history?.length || validating} className="rounded-md border border-accent/40 bg-accent/5 px-2.5 py-1 text-[11px] font-medium text-accent transition hover:bg-accent/10 disabled:opacity-40">{validating ? "testing…" : "Test on new data"}</button>
               </div>
@@ -684,7 +684,7 @@ export function Platform({ onLoad, tab }: { onLoad?: (s: Loadable) => void; tab?
       {sub === "mcp" && (
         <div className="mt-3 min-h-0 flex-1 overflow-y-auto pr-1">
           <section className="card p-5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
               <div className="label">Full audit trail · {audit.length} events</div>
               <span className="text-[11px] text-muted">every config edit, environment change, governed action, run, suggestion & self-evolution — attributed</span>
             </div>

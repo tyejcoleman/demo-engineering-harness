@@ -514,7 +514,7 @@ export default function Demo() {
                   <span><b className="font-medium">AI chose this scenario · </b>{situation.rationale}</span>
                 </div>
               )}
-              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <div className="mt-2 hidden flex-wrap items-center gap-1.5 sm:flex">
                 {PHASES.map((p, i) => {
                   const active = phaseIdx >= i && phaseIdx >= 0;
                   const cur = phase === p;
