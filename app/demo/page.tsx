@@ -399,8 +399,8 @@ export default function Demo() {
   return (
     <div className="flex min-h-[100dvh] flex-col lg:h-screen lg:overflow-hidden">
       {about && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/20 p-6 pt-20" onClick={() => setAbout(false)}>
-          <div className="card max-w-lg p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/20 p-4 pt-16 sm:p-6 sm:pt-20" onClick={() => setAbout(false)}>
+          <div className="card max-h-[85dvh] w-full max-w-lg overflow-y-auto p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between"><div className="text-base font-semibold text-fg">How it works</div><button onClick={() => setAbout(false)} className="text-xs text-muted transition hover:text-fg">close ✕</button></div>
             <p className="mt-2 text-sm leading-relaxed text-muted">Every output is generated <b className="text-fg">live by real LLMs</b> — nothing is scripted or hardcoded. You control the <b className="text-fg">reveal pace</b> (pause · step · speed) and can replay a run, but the content is real each time.</p>
             <ul className="mt-3 list-disc space-y-1 pl-5 text-[13px] leading-relaxed text-muted">
@@ -438,9 +438,9 @@ export default function Demo() {
             </div>
           </div>
           <div className="flex items-center justify-between gap-3 pb-2">
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex gap-1.5 overflow-x-auto">
               {TABS.map(([id, label]) => (
-                <button key={id} onClick={() => setView(id)} className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition ${view === id ? "bg-accent text-white shadow-sm" : "bg-panel2 text-muted hover:text-fg"}`}>
+                <button key={id} onClick={() => setView(id)} className={`shrink-0 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-medium transition sm:px-3.5 sm:text-sm ${view === id ? "bg-accent text-white shadow-sm" : "bg-panel2 text-muted hover:text-fg"}`}>
                   {label}
                 </button>
               ))}
@@ -452,6 +452,13 @@ export default function Demo() {
               </div>
             )}
           </div>
+          {/* AI navigator — own row on phones (on md+ it sits inline beside the tabs above) */}
+          {nudge.tip && (
+            <div className="flex items-start gap-2 pb-2 text-[11px] leading-relaxed md:hidden">
+              <span className="mt-px inline-flex shrink-0 items-center gap-1 rounded-full border border-accent/40 bg-accent/5 px-2 py-0.5 font-medium text-accent"><Icon name="eye" className="h-3 w-3" /> AI navigator</span>
+              <span className="min-w-0 text-muted">{nudge.title ? <b className="font-medium text-fg">{nudge.title} · </b> : null}{nudge.tip}</span>
+            </div>
+          )}
         </div>
       </header>
 
