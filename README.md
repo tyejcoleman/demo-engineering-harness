@@ -5,12 +5,19 @@
 > policy per concern — across five industries, with a hard daily cost cap so the public link is safe.
 
 <p align="center">
-  <a href="https://forge.5.78.192.178.sslip.io/demo"><b>▶ Live demo</b></a> &nbsp;·&nbsp;
+  <a href="https://demo.tyecoleman.dev/demo"><img src="https://img.shields.io/badge/%E2%96%B6%20live%20demo-online-2ea44f?style=for-the-badge" alt="Live demo"></a>
+  <img src="https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js" alt="Next.js 14">
+  <img src="https://img.shields.io/badge/MCP-control%20plane-4b8bbe?style=for-the-badge" alt="MCP control plane">
+  <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="MIT license">
+</p>
+
+<p align="center">
+  <a href="https://demo.tyecoleman.dev/demo"><b>▶ Live demo</b></a> &nbsp;·&nbsp;
   Next.js 14 · SSE · Gemini &nbsp;·&nbsp; <i>every output generated live — nothing scripted</i>
 </p>
 
 <p align="center">
-  <a href="https://forge.5.78.192.178.sslip.io/demo">
+  <a href="https://demo.tyecoleman.dev/demo">
     <img src="docs/assets/live-demo.png" alt="Live contact-center call: agent reasoning, grounded knowledge, outcome simulation, and a live 3D context graph" width="100%">
   </a>
 </p>
